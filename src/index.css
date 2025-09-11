@@ -7,36 +7,47 @@
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-
-}
-
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
 }
 
 body {
   margin: 0;
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center;     /* Center vertically */
   min-width: 320px;
   min-height: 100vh;
+}
+
+/* Default scrollbar styles for light theme */
+body::-webkit-scrollbar { 
+  width: 10px; 
+  height: 10px; 
+}
+body::-webkit-scrollbar-track { 
+  background: rgba(0,0,0,0.05); 
+  border-radius: 5px; 
+}
+body::-webkit-scrollbar-thumb { 
+  background: rgba(0,0,0,0.20); 
+  border-radius: 5px; 
+}
+body::-webkit-scrollbar-thumb:hover { 
+  background: rgba(0,0,0,0.30); 
+}
+
+/* Dark theme scrollbar styles */
+@media (prefers-color-scheme: dark) {
+  body::-webkit-scrollbar-track { 
+    background: rgba(255,255,255,0.10); 
+  }
+  body::-webkit-scrollbar-thumb { 
+    background: rgba(255,255,255,0.20); 
+  }
+  body::-webkit-scrollbar-thumb:hover { 
+    background: rgba(255,255,255,0.30); 
+  }
 }
 
 h1 {
@@ -85,4 +96,37 @@ body::before {
   background: linear-gradient(90deg, #0f172a 0%, #334155 50%, #0f172a 100%);
   filter: blur(3px);
   opacity: 0.9;
+}
+
+/* CSS-only scrollbar skins (light/dark) for themed scrollbars */
+.light-scrollbar::-webkit-scrollbar { 
+  width: 10px; 
+  height: 10px; 
+}
+.light-scrollbar::-webkit-scrollbar-track { 
+  background: rgba(0,0,0,0.05); 
+  border-radius: 5px; 
+}
+.light-scrollbar::-webkit-scrollbar-thumb { 
+  background: rgba(0,0,0,0.20); 
+  border-radius: 5px; 
+}
+.light-scrollbar::-webkit-scrollbar-thumb:hover { 
+  background: rgba(0,0,0,0.30); 
+}
+
+.dark-scrollbar::-webkit-scrollbar { 
+  width: 10px; 
+  height: 10px; 
+}
+.dark-scrollbar::-webkit-scrollbar-track { 
+  background: rgba(255,255,255,0.10); 
+  border-radius: 5px; 
+}
+.dark-scrollbar::-webkit-scrollbar-thumb { 
+  background: rgba(255,255,255,0.20); 
+  border-radius: 5px; 
+}
+.dark-scrollbar::-webkit-scrollbar-thumb:hover { 
+  background: rgba(255,255,255,0.30); 
 }
