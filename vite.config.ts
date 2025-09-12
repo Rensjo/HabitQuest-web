@@ -13,7 +13,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Split vendor libraries
-          'react-vendor': ['react', 'react-dom'],
+          'react-vendor': ['react', 'react-dom', 'react-is'],
           'framer-motion': ['framer-motion'],
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-progress', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
           'charts': ['recharts'],
@@ -35,10 +35,12 @@ export default defineConfig({
     include: [
       'react',
       'react-dom',
+      'react-is',
       'framer-motion',
       'lucide-react',
       'clsx',
-      'tailwind-merge'
+      'tailwind-merge',
+      'recharts'
     ],
     exclude: ['@tauri-apps/api']
   },
