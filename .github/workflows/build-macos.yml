@@ -98,10 +98,34 @@ jobs:
         echo ""
         echo "Looking for binary files:"
         find src-tauri/target -name "HabitQuest" -type f
+        echo ""
+        echo "Checking contents of Intel app bundle:"
+        ls -la src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
+        echo ""
+        echo "Checking contents of Apple Silicon app bundle:"
+        ls -la src-tauri/target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
         
-        # Find the actual binary paths
+        # Find the actual binary paths - use more flexible pattern
         INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
         SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        
+        # If not found with specific pattern, try broader search
+        if [ -z "$INTEL_BINARY" ]; then
+          INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -name "HabitQuest" -type f | head -1)
+        fi
+        
+        if [ -z "$SILICON_BINARY" ]; then
+          SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -name "HabitQuest" -type f | head -1)
+        fi
+        
+        # If still not found, try even broader search
+        if [ -z "$INTEL_BINARY" ]; then
+          INTEL_BINARY=$(find src-tauri/target -name "HabitQuest" -type f | grep x86_64 | head -1)
+        fi
+        
+        if [ -z "$SILICON_BINARY" ]; then
+          SILICON_BINARY=$(find src-tauri/target -name "HabitQuest" -type f | grep aarch64 | head -1)
+        fi
         
         echo "Intel binary: $INTEL_BINARY"
         echo "Silicon binary: $SILICON_BINARY"
@@ -109,11 +133,15 @@ jobs:
         # Verify both binaries exist
         if [ ! -f "$INTEL_BINARY" ]; then
           echo "Error: Intel binary not found at $INTEL_BINARY"
+          echo "Available Intel files:"
+          find src-tauri/target -path "*x86_64*" -name "*HabitQuest*" -type f
           exit 1
         fi
         
         if [ ! -f "$SILICON_BINARY" ]; then
           echo "Error: Apple Silicon binary not found at $SILICON_BINARY"
+          echo "Available Apple Silicon files:"
+          find src-tauri/target -path "*aarch64*" -name "*HabitQuest*" -type f
           exit 1
         fi
         
