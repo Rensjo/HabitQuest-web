@@ -56,17 +56,62 @@ jobs:
       run: npm install -g @tauri-apps/cli@latest
       
     - name: Build Tauri app (Intel)
-      run: npm run tauri:build:macos-intel
+      run: |
+        echo "Building Intel version..."
+        npm run tauri:build:macos-intel
+        echo "Intel build completed"
         
     - name: Build Tauri app (Apple Silicon)
-      run: npm run tauri:build:macos-silicon
-        
-    - name: Create universal binary
       run: |
-        # Create universal binary for both architectures
+        echo "Building Apple Silicon version..."
+        npm run tauri:build:macos-silicon
+        echo "Apple Silicon build completed"
+        
+    - name: Verify builds and create universal binary
+      run: |
+        # Check if builds succeeded and find the correct paths
+        echo "Checking build outputs..."
+        echo "Full target directory structure:"
+        find target -type f -name "HabitQuest*" | head -20
+        echo ""
+        echo "Looking for .app directories:"
+        find target -name "HabitQuest.app" -type d
+        echo ""
+        echo "Looking for binary files:"
+        find target -name "HabitQuest" -type f
+        
+        # Find the actual binary paths
+        INTEL_BINARY=$(find target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        SILICON_BINARY=$(find target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        
+        echo "Intel binary: $INTEL_BINARY"
+        echo "Silicon binary: $SILICON_BINARY"
+        
+        # Verify both binaries exist
+        if [ ! -f "$INTEL_BINARY" ]; then
+          echo "Error: Intel binary not found at $INTEL_BINARY"
+          exit 1
+        fi
+        
+        if [ ! -f "$SILICON_BINARY" ]; then
+          echo "Error: Apple Silicon binary not found at $SILICON_BINARY"
+          exit 1
+        fi
+        
+        # Create universal binary directory
+        mkdir -p target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS
+        
+        # Create universal binary
         lipo -create -output target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
-          target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
-          target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
+          "$INTEL_BINARY" \
+          "$SILICON_BINARY"
+        
+        # Copy the Intel app bundle as base and replace the binary
+        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app target/universal-apple-darwin/release/bundle/macos/
+        cp target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+           target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
+        
+        echo "Universal binary created successfully"
           
     - name: Create DMG
       run: |
