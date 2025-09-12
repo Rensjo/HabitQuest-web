@@ -33,7 +33,7 @@ jobs:
         targets: x86_64-apple-darwin,aarch64-apple-darwin
         
     - name: Cache Rust dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/bin/
@@ -79,22 +79,37 @@ jobs:
           "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" \
           "target/universal-apple-darwin/release/bundle/macos/"
           
-    - name: Create package folder
+    - name: Create package folders
       run: |
+        # Create universal package folder
         mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal
         
-        # Copy DMG
+        # Create Intel-specific package folder
+        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel
+        
+        # Create Apple Silicon-specific package folder
+        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon
+        
+        # Copy DMG to universal package
         cp HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
         
-        # Copy individual architecture builds
+        # Copy individual architecture builds to universal package
         cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-Intel.app
         cp -r target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-AppleSilicon.app
         
-        # Copy documentation
-        cp README.md HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
-        cp LICENSE.txt HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/ 2>/dev/null || echo "LICENSE.txt not found"
+        # Copy Intel build to Intel package
+        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/HabitQuest.app
         
-        # Create macOS-specific README
+        # Copy Apple Silicon build to Apple Silicon package
+        cp -r target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/HabitQuest.app
+        
+        # Copy documentation to all packages
+        for dir in HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*; do
+          cp README.md "$dir/"
+          cp LICENSE.txt "$dir/" 2>/dev/null || echo "LICENSE.txt not found"
+        done
+        
+        # Create macOS-specific READMEs for each package
         cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/README-macOS.md << 'EOF'
         # HabitQuest v3.2.0.1 - macOS Universal Binary
         
@@ -140,12 +155,77 @@ jobs:
         **HabitQuest v3.2.0.1 - Transform your life, one habit at a time!** 🚀
         EOF
         
+        # Create Intel-specific README
+        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/README-macOS-Intel.md << 'EOF'
+        # HabitQuest v3.2.0.1 - macOS Intel (x86_64)
+        
+        ## 🍎 **macOS Intel Installation Guide**
+        
+        ### **System Requirements**
+        - macOS 10.15 (Catalina) or later
+        - Intel x64 processor (MacBook Pro, MacBook Air, iMac, Mac Pro, Mac mini)
+        - 100MB available storage
+        
+        ### **Installation**
+        1. Download this Intel-specific package
+        2. Extract the ZIP file
+        3. Drag `HabitQuest.app` to your Applications folder
+        4. Launch HabitQuest from Applications or Launchpad
+        
+        ### **First Launch**
+        - Right-click the app and select "Open" if you get a security warning
+        - Go to System Preferences > Security & Privacy > General
+        - Click "Open Anyway" if the app is blocked
+        
+        ### **Compatibility**
+        - Optimized for Intel Macs
+        - Smaller download size
+        - Better performance on Intel processors
+        
+        ---
+        **HabitQuest v3.2.0.1 - Intel Mac Version** 🚀
+        EOF
+        
+        # Create Apple Silicon-specific README
+        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/README-macOS-AppleSilicon.md << 'EOF'
+        # HabitQuest v3.2.0.1 - macOS Apple Silicon (aarch64)
+        
+        ## 🍎 **macOS Apple Silicon Installation Guide**
+        
+        ### **System Requirements**
+        - macOS 10.15 (Catalina) or later
+        - Apple Silicon processor (M1, M2, M3, M4 Macs)
+        - 100MB available storage
+        
+        ### **Installation**
+        1. Download this Apple Silicon-specific package
+        2. Extract the ZIP file
+        3. Drag `HabitQuest.app` to your Applications folder
+        4. Launch HabitQuest from Applications or Launchpad
+        
+        ### **First Launch**
+        - Right-click the app and select "Open" if you get a security warning
+        - Go to System Preferences > Security & Privacy > General
+        - Click "Open Anyway" if the app is blocked
+        
+        ### **Compatibility**
+        - Optimized for Apple Silicon Macs
+        - Native ARM64 performance
+        - Better battery life on Apple Silicon
+        - Smaller download size
+        
+        ---
+        **HabitQuest v3.2.0.1 - Apple Silicon Mac Version** 🚀
+        EOF
+        
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: habitquest-macos-v3.2.0.1
         path: |
           HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/
           HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
         retention-days: 30
         
@@ -175,6 +255,8 @@ jobs:
         files: |
           HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
           HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/*
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/*
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/*
         draft: false
         prerelease: false
       env:
