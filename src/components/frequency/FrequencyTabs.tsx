@@ -38,10 +38,10 @@ export const FrequencyTabs: React.FC<FrequencyTabsProps> = ({
         </p>
       </div>
       
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Frequency Tabs Container */}
         <motion.div 
-          className="flex flex-wrap gap-3"
+          className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, staggerChildren: 0.1 }}
@@ -88,7 +88,7 @@ export const FrequencyTabs: React.FC<FrequencyTabsProps> = ({
                   playButtonClick();
                 }}
                 className={classNames(
-                  "px-6 py-3.5 rounded-3xl border text-sm capitalize font-semibold transition-all duration-100 relative overflow-hidden backdrop-blur-md",
+                  "px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-3xl border text-xs sm:text-sm capitalize font-semibold transition-all duration-100 relative overflow-hidden backdrop-blur-md flex-1 sm:flex-none min-w-0",
                   activeFreq === f
                     ? `bg-gradient-to-r ${config.colors} text-white border-white/20 shadow-xl ${config.shadowColor} ring-2 ring-white/30`
                     : "bg-white/80 dark:bg-neutral-800/70 border-neutral-200/50 dark:border-neutral-600/50 text-neutral-700 dark:text-neutral-300 hover:bg-white/90 dark:hover:bg-neutral-700/80 hover:border-neutral-300/60 dark:hover:border-neutral-500/60"
@@ -212,7 +212,7 @@ export const FrequencyTabs: React.FC<FrequencyTabsProps> = ({
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex-shrink-0"
+          className="flex-shrink-0 w-full sm:w-auto"
         >
           <motion.button
             onClick={() => {
@@ -220,13 +220,13 @@ export const FrequencyTabs: React.FC<FrequencyTabsProps> = ({
               playButtonClick();
             }}
             className="
-              relative overflow-hidden rounded-3xl px-6 py-3
+              relative overflow-hidden rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-2.5 sm:py-3
               bg-gradient-to-r from-purple-600 to-violet-600
               backdrop-blur-md
               border border-purple-300/30 dark:border-0 
-              text-white font-semibold text-sm
+              text-white font-semibold text-xs sm:text-sm
               shadow-xl shadow-purple-500/30 dark:shadow-purple-500/25
-              transition-all duration-100
+              transition-all duration-100 w-full sm:w-auto
             "
             whileHover={{ 
               scale: 1.05, 

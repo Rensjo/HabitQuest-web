@@ -71,8 +71,8 @@ export function AddHabitModal({
         exit={{ y: 20, opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
-        {/* Academic Quest Gradient Background */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-600/8 via-blue-600/8 to-violet-600/8 dark:from-purple-600/10 dark:via-blue-600/10 dark:to-violet-600/10"></div>
+        {/* Purple/Violet Theme Gradient Background */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/8 via-violet-500/8 to-blue-500/8 dark:from-purple-500/10 dark:via-violet-500/10 dark:to-blue-500/10"></div>
         
         {/* Floating Gradient Orbs */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -93,7 +93,7 @@ export function AddHabitModal({
                 <featureIcons.sparkles className="w-6 h-6 text-purple-500 dark:text-purple-400" />
               </motion.div>
             </div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-blue-700 to-violet-700 dark:from-purple-600 dark:via-blue-600 dark:to-violet-600 bg-clip-text text-transparent mb-2">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-violet-700 to-blue-700 dark:from-purple-600 dark:via-violet-600 dark:to-blue-600 bg-clip-text text-transparent mb-2">
               Create New Habit
             </h2>
             <p className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Build consistency and earn XP</p>

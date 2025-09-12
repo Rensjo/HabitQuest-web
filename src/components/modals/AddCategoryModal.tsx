@@ -57,7 +57,7 @@ export function AddCategoryModal({
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
         {/* Emerald/Cyan Theme Gradient Background */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/8 via-cyan-600/8 to-teal-600/8 dark:from-emerald-600/10 dark:via-cyan-600/10 dark:to-teal-600/10"></div>
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/8 via-cyan-500/8 to-teal-500/8 dark:from-emerald-500/10 dark:via-cyan-500/10 dark:to-teal-500/10"></div>
         
         {/* Floating Gradient Orbs */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -162,7 +162,7 @@ export function AddCategoryModal({
               type="submit"
               className="
                 relative overflow-hidden px-6 py-3 rounded-2xl font-medium text-sm
-                bg-gradient-to-r from-emerald-600 to-cyan-600
+                bg-gradient-to-r from-emerald-500 to-cyan-600
                 text-white border-0
                 shadow-lg shadow-emerald-500/25
                 transition-all duration-300
@@ -173,7 +173,7 @@ export function AddCategoryModal({
               }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-600 to-teal-600 opacity-95"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-cyan-500 to-teal-600 opacity-95"></div>
               <div className="relative z-10 flex items-center gap-2">
                 <featureIcons.target className="w-4 h-4" />
                 Create Category

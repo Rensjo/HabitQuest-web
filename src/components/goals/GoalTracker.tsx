@@ -2,15 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
-import type { Goal } from '../../types';
-
+import { getCategoryColorTheme } from '../../utils/categoryColors';
 interface GoalTrackerProps {
   categories: string[];
   categoryXP: Record<string, number>;
-  goals: Record<string, Goal>;
+  goals: Record<string, { monthlyTargetXP: number }>;
   selectedDate: Date;
   onAddCategory: () => void;
-  onSetGoals: (goals: Record<string, Goal>) => void;
+  onSetGoals: (goals: Record<string, { monthlyTargetXP: number }>) => void;
 }
 
 export const GoalTracker: React.FC<GoalTrackerProps> = ({
@@ -88,10 +87,10 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
         </div>
       </motion.div>
 
-      {/* Two column layout for categories */}
-      <div className="max-w-none w-full">
+      {/* Responsive grid layout for categories */}
+      <div className="w-full">
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, staggerChildren: 0.1 }}
@@ -100,35 +99,76 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             const earned = categoryXP[c] || 0;
             const target = goals[c]?.monthlyTargetXP || 200;
             const pct = Math.min(100, Math.round((earned / Math.max(1, target)) * 100));
+            const colorTheme = getCategoryColorTheme(c);
+            
             return (
-              <div key={c}>
-                <motion.div 
-                  layout 
-                  className="w-full max-w-full border border-neutral-300/50 dark:border-neutral-700/50 bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-4 block"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 + index * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  onMouseEnter={() => playHover()}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{c}</div>
-                    <div className="text-sm text-neutral-600 dark:text-neutral-300">{earned}/{target} XP ({pct}%)</div>
+              <motion.div 
+                key={c}
+                layout 
+                className={`
+                  w-full border ${colorTheme.border} 
+                  bg-neutral-100/80 dark:bg-neutral-900/80 
+                  backdrop-blur-sm rounded-2xl p-4 
+                  shadow-xl ${colorTheme.shadow}
+                  relative overflow-hidden cursor-pointer group
+                `}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4 + index * 0.1 }}
+                whileHover={{ 
+                  scale: 1.02, 
+                  y: -2,
+                  boxShadow: `0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)`,
+                  transition: { duration: 0.2, ease: "easeOut" }
+                }}
+                onMouseEnter={() => playHover()}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Neutral Background with Glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-lg transition-all duration-300"></div>
+                
+                {/* Category Header */}
+                <div className="relative z-10 flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-2 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border ${colorTheme.border.replace('/60', '/60').replace('/40', '/50')} shadow-lg ${colorTheme.shadow.replace('/20', '/30').replace('/10', '/20')}`}>
+                      <featureIcons.target className={`w-4 h-4 ${colorTheme.icon} drop-shadow-lg`} />
+                    </div>
+                    <div className="font-semibold text-sm sm:text-base text-neutral-900 dark:text-neutral-100 truncate">{c}</div>
                   </div>
-                  <div className="mt-2 h-3 rounded-full bg-neutral-300 dark:bg-neutral-800 overflow-hidden">
+                  <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium">{pct}%</div>
+                </div>
+                
+                {/* XP Progress */}
+                <div className="relative z-10 mb-3">
+                  <div className="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400 mb-2">
+                    <span className="font-medium">{earned} XP</span>
+                    <span className="text-neutral-500 dark:text-neutral-500">/{target} XP</span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-800 overflow-hidden">
                     <motion.div 
                       layout 
-                      className="h-full bg-gradient-to-r from-cyan-400 to-blue-500" 
+                      className={`h-full bg-gradient-to-r ${colorTheme.primary} shadow-lg`}
                       animate={{ width: `${pct}%` }} 
                       transition={{ duration: 1, ease: "easeOut" }}
                     />
                   </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <label className="text-xs text-neutral-600 dark:text-neutral-400">Monthly target:</label>
+                </div>
+                
+                {/* Target Input */}
+                <div className="relative z-10 mb-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-neutral-600 dark:text-neutral-400">Target:</label>
                     <input
                       type="number"
-                      className="w-28 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-800 px-2 py-1 text-sm text-neutral-900 dark:text-neutral-100"
+                      className={`w-20 sm:w-24 rounded-md border ${colorTheme.border.replace('/60', '/40').replace('/40', '/30')} bg-neutral-100/60 dark:bg-neutral-800/60 px-2 py-1 text-xs text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-opacity-50 focus:outline-none`}
+                      style={{ 
+                        '--tw-ring-color': colorTheme.primary.includes('blue') ? '#3b82f6' : 
+                                          colorTheme.primary.includes('purple') ? '#8b5cf6' :
+                                          colorTheme.primary.includes('emerald') ? '#10b981' :
+                                          colorTheme.primary.includes('amber') ? '#f59e0b' :
+                                          colorTheme.primary.includes('rose') ? '#f43f5e' :
+                                          colorTheme.primary.includes('cyan') ? '#06b6d4' : '#6b7280'
+                      } as React.CSSProperties}
                       value={goals[c]?.monthlyTargetXP}
                       onChange={(e) =>
                         onSetGoals({ ...goals, [c]: { monthlyTargetXP: Number(e.target.value || 0) } })
@@ -136,8 +176,16 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                     />
                     <span className="text-xs text-neutral-600 dark:text-neutral-400">XP</span>
                   </div>
-                </motion.div>
-              </div>
+                </div>
+                
+                {/* Progress Indicator */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {pct >= 100 ? '🎉 Complete!' : pct >= 75 ? '🔥 Almost there!' : pct >= 50 ? '💪 Halfway!' : '🚀 Keep going!'}
+                  </div>
+                  <div className={`w-2 h-2 rounded-full ${pct >= 100 ? 'bg-emerald-500' : pct >= 75 ? 'bg-amber-500' : pct >= 50 ? 'bg-blue-500' : 'bg-neutral-400'} shadow-sm`}></div>
+                </div>
+              </motion.div>
             );
           })}
         </motion.div>

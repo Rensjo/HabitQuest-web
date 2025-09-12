@@ -63,20 +63,21 @@ export const HabitListSection: React.FC<HabitListSectionProps> = ({
               }}
             >
               <motion.div 
-                className="flex items-center justify-between border border-neutral-300/50 dark:border-neutral-700/50 bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-4"
+                className="flex items-start justify-between gap-4 border border-neutral-300/50 dark:border-neutral-700/50 bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-4"
                 whileHover={{ 
                   borderColor: "rgba(96, 165, 250, 0.3)",
                   boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
                 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
               >
-                <div>
-                  <div className="font-semibold flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
-                    {h.title}
+                {/* Habit Info Section */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold flex items-center gap-2 text-neutral-900 dark:text-neutral-100 mb-1">
+                    <span className="truncate">{h.title}</span>
                     <span
                       className={
                         classNames(
-                          "text-[10px] px-2 py-0.5 rounded-full border",
+                          "text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0",
                           h.isRecurring ? "border-emerald-400 text-emerald-600 dark:text-emerald-300" : "border-cyan-400 text-cyan-600 dark:text-cyan-300"
                         )
                       }
@@ -84,7 +85,7 @@ export const HabitListSection: React.FC<HabitListSectionProps> = ({
                       {h.isRecurring ? "Recurring" : "Specific"}
                     </span>
                   </div>
-                  <div className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+                  <div className="text-xs text-neutral-600 dark:text-neutral-400">
                     {h.category} • {h.frequency} • {h.xpOnComplete} XP
                     {h.specificDate && !h.isRecurring && (
                       <span className="ml-2 text-neutral-700 dark:text-neutral-300">on {new Date(h.specificDate).toLocaleDateString()}</span>
@@ -94,11 +95,13 @@ export const HabitListSection: React.FC<HabitListSectionProps> = ({
                     ) : null}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                {/* Action Buttons Section - Right Side */}
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <motion.button
                     onClick={() => onHabitComplete(h.id, selectedDate)}
                     className={classNames(
-                      "px-3 py-2 rounded-xl text-sm border transition-all duration-150",
+                      "px-3 py-2 rounded-xl text-sm border transition-all duration-150 whitespace-nowrap",
                       done
                         ? "bg-emerald-400 text-black border-emerald-300"
                         : "bg-neutral-200/80 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
@@ -115,7 +118,7 @@ export const HabitListSection: React.FC<HabitListSectionProps> = ({
                       onHabitDelete(h.id);
                       playButtonClick();
                     }}
-                    className="px-3 py-2 rounded-xl text-sm border bg-red-100/80 dark:bg-red-500/20 border-red-300 dark:border-red-500/40 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-700 dark:text-red-300 transition-colors duration-150"
+                    className="px-3 py-2 rounded-xl text-sm border bg-red-100/80 dark:bg-red-500/20 border-red-300 dark:border-red-500/40 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-700 dark:text-red-300 transition-colors duration-150 whitespace-nowrap"
                     title="Delete habit"
                     whileHover={{ scale: 1.02 }}
                     onMouseEnter={() => playHover()}

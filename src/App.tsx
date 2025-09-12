@@ -202,14 +202,14 @@ export default function HabitGoalTrackerV3() {
           transition={{ duration: 0.5 }}
         >
           {/* Background with gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-indigo-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-indigo-500/10 rounded-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/4 via-purple-500/4 to-indigo-500/4 dark:from-blue-500/3 dark:via-purple-500/3 dark:to-indigo-500/3 rounded-3xl" />
           
           {/* Decorative elements */}
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-400/5 dark:to-purple-400/5 rounded-full blur-2xl" />
-          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-indigo-400/10 to-cyan-400/10 dark:from-indigo-400/5 dark:to-cyan-400/5 rounded-full blur-3xl" />
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-400/5 to-purple-400/5 dark:from-blue-400/2 dark:to-purple-400/2 rounded-full blur-2xl" />
+          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-indigo-400/5 to-cyan-400/5 dark:from-indigo-400/2 dark:to-cyan-400/2 rounded-full blur-3xl" />
           
           {/* Content */}
-          <div className="relative z-10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 rounded-3xl p-8">
+          <div className="relative z-10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-700/50 rounded-2xl p-6">
             {/* Header */}
             <motion.div 
               className="flex items-center gap-4 mb-6"
@@ -217,11 +217,11 @@ export default function HabitGoalTrackerV3() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 dark:border-blue-400/20">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-400/20 dark:border-blue-400/10">
                 <featureIcons.sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-300 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent">
                   What's New in v3.2.0
                 </h2>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">

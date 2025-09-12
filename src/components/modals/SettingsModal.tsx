@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
+import { useTheme } from '../../hooks/useTheme';
+import { useAppStore } from '../../store/appStore';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -28,6 +30,8 @@ export function SettingsModal({
   onBackgroundMusicVolumeChange
 }: SettingsModalProps) {
   const { playButtonClick: playClick } = useSoundEffectsOnly();
+  const { theme, setTheme, gradientColors, setGradientColors } = useTheme();
+  const { exportData, importData, resetData } = useAppStore();
 
   const handleClose = () => {
     playClick();
@@ -50,6 +54,71 @@ export function SettingsModal({
 
   const handleBackgroundMusicVolumeChange = (volume: number) => {
     onBackgroundMusicVolumeChange(volume);
+  };
+
+  const handleExport = () => {
+    playClick();
+    const data = exportData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `habitquest-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result as string;
+        if (importData(data)) {
+          alert('Data imported successfully!');
+          onClose();
+        } else {
+          alert('Failed to import data. Please check the file format.');
+        }
+      } catch (error) {
+        alert('Error reading file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleReset = () => {
+    if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+      playClick();
+      resetData();
+      onClose();
+    }
+  };
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    playClick();
+    setTheme(newTheme);
+  };
+
+  const handleAccentColorChange = (color: string) => {
+    playClick();
+    // Convert color name to hex values for gradient
+    const colorMap: Record<string, string[]> = {
+      blue: ['#3b82f6', '#1d4ed8'],
+      emerald: ['#10b981', '#047857'],
+      purple: ['#8b5cf6', '#7c3aed'],
+      amber: ['#f59e0b', '#d97706'],
+      rose: ['#f43f5e', '#e11d48'],
+      cyan: ['#06b6d4', '#0891b2']
+    };
+    
+    if (colorMap[color]) {
+      setGradientColors(colorMap[color]);
+    }
   };
 
   return (
@@ -288,12 +357,13 @@ export function SettingsModal({
                           { key: 'light', label: 'Light', icon: featureIcons.sun },
                           { key: 'dark', label: 'Dark', icon: featureIcons.moon },
                           { key: 'system', label: 'System', icon: featureIcons.monitor }
-                        ].map((theme) => (
+                        ].map((themeOption) => (
                           <motion.button
-                            key={theme.key}
+                            key={themeOption.key}
+                            onClick={() => handleThemeChange(themeOption.key as 'light' | 'dark' | 'system')}
                             className={`
                               flex items-center justify-center gap-2 p-3 rounded-xl
-                              ${theme.key === 'system' 
+                              ${theme === themeOption.key 
                                 ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30' 
                                 : 'bg-white/60 dark:bg-neutral-700/60 text-neutral-700 dark:text-neutral-300 hover:bg-white/80 dark:hover:bg-neutral-600/80'
                               }
@@ -303,8 +373,8 @@ export function SettingsModal({
                             whileHover={{ scale: 1.02, y: -1 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            <theme.icon className="w-4 h-4" />
-                            <span className="text-sm font-medium">{theme.label}</span>
+                            <themeOption.icon className="w-4 h-4" />
+                            <span className="text-sm font-medium">{themeOption.label}</span>
                           </motion.button>
                         ))}
                       </div>
@@ -324,9 +394,15 @@ export function SettingsModal({
                         ].map((accent) => (
                           <motion.button
                             key={accent.color}
+                            onClick={() => handleAccentColorChange(accent.color)}
                             className={`
                               w-8 h-8 rounded-full ${accent.class}
-                              ${accent.color === 'blue' ? 'ring-2 ring-blue-300 dark:ring-blue-400' : ''}
+                              ${gradientColors[0] === (accent.color === 'blue' ? '#3b82f6' : 
+                                accent.color === 'emerald' ? '#10b981' :
+                                accent.color === 'purple' ? '#8b5cf6' :
+                                accent.color === 'amber' ? '#f59e0b' :
+                                accent.color === 'rose' ? '#f43f5e' :
+                                accent.color === 'cyan' ? '#06b6d4' : '#3b82f6') ? 'ring-2 ring-blue-300 dark:ring-blue-400' : ''}
                               shadow-lg transition-all duration-200
                             `}
                             whileHover={{ scale: 1.1 }}
@@ -426,6 +502,7 @@ export function SettingsModal({
                   <div className="space-y-4">
                     {/* Export Data */}
                     <motion.button
+                      onClick={handleExport}
                       className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 border border-green-200/30 dark:border-green-600/30 hover:from-green-500/20 hover:to-emerald-500/20 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 transition-all duration-200"
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
@@ -443,11 +520,20 @@ export function SettingsModal({
                     </motion.button>
 
                     {/* Import Data */}
-                    <motion.button
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20 border border-blue-200/30 dark:border-blue-600/30 hover:from-blue-500/20 hover:to-cyan-500/20 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all duration-200"
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
+                    <div>
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleImport}
+                        className="hidden"
+                        id="import-file"
+                      />
+                      <motion.button
+                        onClick={() => document.getElementById('import-file')?.click()}
+                        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20 border border-blue-200/30 dark:border-blue-600/30 hover:from-blue-500/20 hover:to-cyan-500/20 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all duration-200"
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-blue-500/10 dark:bg-blue-500/20">
                           <featureIcons.upload className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -458,10 +544,12 @@ export function SettingsModal({
                         </div>
                       </div>
                       <featureIcons.chevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </motion.button>
+                      </motion.button>
+                    </div>
 
                     {/* Reset Data */}
                     <motion.button
+                      onClick={handleReset}
                       className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-rose-500/10 dark:from-red-500/20 dark:to-rose-500/20 border border-red-200/30 dark:border-red-600/30 hover:from-red-500/20 hover:to-rose-500/20 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 transition-all duration-200"
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}

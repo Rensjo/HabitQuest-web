@@ -26,7 +26,7 @@ export const CalendarSection: React.FC<CalendarSectionProps> = ({
   onNextMonth,
   onToday
 }) => {
-  const { playButtonClick } = useSoundEffectsOnly();
+  const { playButtonClick, playHover } = useSoundEffectsOnly();
 
   // Calendar logic
   const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);

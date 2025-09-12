@@ -67,11 +67,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             >
               <featureIcons.compass 
                 size={48} 
-                className="text-blue-500" 
+                className="text-amber-500 dark:text-amber-400 drop-shadow-lg" 
               />
             </motion.div>
             <motion.h1 
-              className="text-3xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent"
+              className="text-3xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 dark:from-amber-400 dark:via-orange-400 dark:to-yellow-400 bg-clip-text text-transparent drop-shadow-lg"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
@@ -109,30 +109,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.95, y: 0 }}
                   className="
-                    bg-white/80 dark:bg-neutral-900/70
-                    backdrop-blur-md
-                    border border-neutral-200/60 dark:border-neutral-700/40
+                    bg-neutral-100/80 dark:bg-neutral-900/80
+                    backdrop-blur-sm
+                    border border-cyan-400/60 dark:border-cyan-400/40
                     rounded-2xl p-5 text-center
-                    shadow-lg shadow-black/5 dark:shadow-black/20
+                    shadow-xl shadow-cyan-500/20 dark:shadow-cyan-500/10
                     relative overflow-hidden
                     cursor-pointer group
                   "
                 >
-                  {/* Cyan Theme Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 to-blue-500/8 dark:from-cyan-500/10 dark:to-blue-500/10 rounded-2xl group-hover:from-cyan-500/15 group-hover:to-blue-500/15 transition-colors duration-100"></div>
+                  {/* Neutral Background with Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-cyan-500/20 group-hover:shadow-lg transition-all duration-300"></div>
                   
                   {/* Icon Container */}
                   <div className="relative z-10 mb-3">
                     <motion.div 
-                      className="inline-flex p-2 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 dark:from-cyan-400/15 dark:to-blue-500/15 border border-cyan-200/30 dark:border-transparent"
+                      className="inline-flex p-2 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-cyan-400/60 dark:border-cyan-400/50 shadow-lg shadow-cyan-500/30 dark:shadow-cyan-500/20"
                       whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.3 } }}
                     >
-                      <featureIcons.calendar className="w-5 h-5 text-cyan-500 dark:text-cyan-400" />
+                      <featureIcons.calendar className="w-5 h-5 text-cyan-500 dark:text-cyan-400 drop-shadow-lg" />
                     </motion.div>
                   </div>
                   
                   {/* Value */}
-                  <div className="relative z-10 text-xl font-bold bg-gradient-to-r from-cyan-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 bg-clip-text text-transparent mb-1">
+                  <div className="relative z-10 text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-1">
                     {`${habitStats.completedToday}/${habitStats.totalToday}`}
                   </div>
                   
@@ -152,38 +152,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   }}
                   onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.95, y: 0 }}
-                  className="
-                    bg-white/80 dark:bg-neutral-900/70
-                    backdrop-blur-md
-                    border border-neutral-200/60 dark:border-neutral-700/40
-                    rounded-2xl p-5 text-center
-                    shadow-lg shadow-black/5 dark:shadow-black/20
-                    relative overflow-hidden
-                    cursor-pointer group
-                  "
-                >
-                  {/* Dynamic Theme Background based on completion rate */}
-                  <div className={`absolute inset-0 rounded-2xl transition-colors duration-100 ${
+                  className={`bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-5 text-center relative overflow-hidden cursor-pointer group ${
                     habitStats.completionRate >= 70 
-                      ? "bg-gradient-to-br from-emerald-500/8 to-green-500/8 dark:from-emerald-500/10 dark:to-green-500/10 group-hover:from-emerald-500/15 group-hover:to-green-500/15"
+                      ? "border border-emerald-400/60 dark:border-emerald-400/40 shadow-xl shadow-emerald-500/20 dark:shadow-emerald-500/10"
                       : habitStats.completionRate >= 40
-                      ? "bg-gradient-to-br from-amber-500/8 to-orange-500/8 dark:from-amber-500/10 dark:to-orange-500/10 group-hover:from-amber-500/15 group-hover:to-orange-500/15"
-                      : "bg-gradient-to-br from-red-500/8 to-rose-500/8 dark:from-red-500/10 dark:to-rose-500/10 group-hover:from-red-500/15 group-hover:to-rose-500/15"
-                  }`}></div>
+                      ? "border border-amber-400/60 dark:border-amber-400/40 shadow-xl shadow-amber-500/20 dark:shadow-amber-500/10"
+                      : "border border-red-400/60 dark:border-red-400/40 shadow-xl shadow-red-500/20 dark:shadow-red-500/10"
+                  }`}
+                >
+                  {/* Neutral Background with Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-lg transition-all duration-300"></div>
                   
                   {/* Icon Container */}
                   <div className="relative z-10 mb-3">
                     <motion.div 
-                      className={`inline-flex p-2 rounded-xl border border-opacity-30 dark:border-transparent ${
+                      className={`inline-flex p-2 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border shadow-lg ${
                         habitStats.completionRate >= 70 
-                          ? "bg-gradient-to-br from-emerald-400/20 to-green-500/20 dark:from-emerald-400/15 dark:to-green-500/15 border-emerald-200"
+                          ? "border-emerald-400/60 dark:border-emerald-400/50 shadow-emerald-500/30 dark:shadow-emerald-500/20"
                           : habitStats.completionRate >= 40
-                          ? "bg-gradient-to-br from-amber-400/20 to-orange-500/20 dark:from-amber-400/15 dark:to-orange-500/15 border-amber-200"
-                          : "bg-gradient-to-br from-red-400/20 to-rose-500/20 dark:from-red-400/15 dark:to-rose-500/15 border-red-200"
+                          ? "border-amber-400/60 dark:border-amber-400/50 shadow-amber-500/30 dark:shadow-amber-500/20"
+                          : "border-red-400/60 dark:border-red-400/50 shadow-red-500/30 dark:shadow-red-500/20"
                       }`}
                       whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.3 } }}
                     >
-                      <featureIcons.trending className={`w-5 h-5 ${
+                      <featureIcons.trending className={`w-5 h-5 drop-shadow-lg ${
                         habitStats.completionRate >= 70 ? "text-emerald-500 dark:text-emerald-400"
                         : habitStats.completionRate >= 40 ? "text-amber-500 dark:text-amber-400"
                         : "text-red-500 dark:text-red-400"
@@ -192,13 +184,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   </div>
                   
                   {/* Value */}
-                  <div className={`relative z-10 text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent mb-1 ${
-                    habitStats.completionRate >= 70 
-                      ? "from-emerald-600 to-green-700 dark:from-emerald-500 dark:to-green-600"
-                      : habitStats.completionRate >= 40
-                      ? "from-amber-600 to-orange-700 dark:from-amber-500 dark:to-orange-600"
-                      : "from-red-600 to-rose-700 dark:from-red-500 dark:to-rose-600"
-                  }`}>
+                  <div className="relative z-10 text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-1">
                     {habitStats.completionRate}%
                   </div>
                   
@@ -219,30 +205,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.95, y: 0 }}
                   className="
-                    bg-white/80 dark:bg-neutral-900/70
-                    backdrop-blur-md
-                    border border-neutral-200/60 dark:border-neutral-700/40
+                    bg-neutral-100/80 dark:bg-neutral-900/80
+                    backdrop-blur-sm
+                    border border-purple-400/60 dark:border-purple-400/40
                     rounded-2xl p-5 text-center
-                    shadow-lg shadow-black/5 dark:shadow-black/20
+                    shadow-xl shadow-purple-500/20 dark:shadow-purple-500/10
                     relative overflow-hidden
                     cursor-pointer group
                   "
                 >
-                  {/* Purple Theme Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/8 to-violet-500/8 dark:from-purple-500/10 dark:to-violet-500/10 rounded-2xl group-hover:from-purple-500/15 group-hover:to-violet-500/15 transition-colors duration-100"></div>
+                  {/* Neutral Background with Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-purple-500/20 group-hover:shadow-lg transition-all duration-300"></div>
                   
                   {/* Icon Container */}
                   <div className="relative z-10 mb-3">
                     <motion.div 
-                      className="inline-flex p-2 rounded-xl bg-gradient-to-br from-purple-400/20 to-violet-500/20 dark:from-purple-400/15 dark:to-violet-500/15 border border-purple-200/30 dark:border-transparent"
+                      className="inline-flex p-2 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-purple-400/60 dark:border-purple-400/50 shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20"
                       whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.3 } }}
                     >
-                      <featureIcons.star className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                      <featureIcons.star className="w-5 h-5 text-purple-500 dark:text-purple-400 drop-shadow-lg" />
                     </motion.div>
                   </div>
                   
                   {/* Value */}
-                  <div className="relative z-10 text-xl font-bold bg-gradient-to-r from-purple-600 to-violet-700 dark:from-purple-500 dark:to-violet-600 bg-clip-text text-transparent mb-1">
+                  <div className="relative z-10 text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-1">
                     {level}
                   </div>
                   
@@ -263,30 +249,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.95, y: 0 }}
                   className="
-                    bg-white/80 dark:bg-neutral-900/70
-                    backdrop-blur-md
-                    border border-neutral-200/60 dark:border-neutral-700/40
+                    bg-neutral-100/80 dark:bg-neutral-900/80
+                    backdrop-blur-sm
+                    border border-emerald-400/60 dark:border-emerald-400/40
                     rounded-2xl p-5 text-center
-                    shadow-lg shadow-black/5 dark:shadow-black/20
+                    shadow-xl shadow-emerald-500/20 dark:shadow-emerald-500/10
                     relative overflow-hidden
                     cursor-pointer group
                   "
                 >
-                  {/* Green Theme Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 to-green-500/8 dark:from-emerald-500/10 dark:to-green-500/10 rounded-2xl group-hover:from-emerald-500/15 group-hover:to-green-500/15 transition-colors duration-100"></div>
+                  {/* Neutral Background with Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-emerald-500/20 group-hover:shadow-lg transition-all duration-300"></div>
                   
                   {/* Icon Container */}
                   <div className="relative z-10 mb-3">
                     <motion.div 
-                      className="inline-flex p-2 rounded-xl bg-gradient-to-br from-emerald-400/20 to-green-500/20 dark:from-emerald-400/15 dark:to-green-500/15 border border-emerald-200/30 dark:border-transparent"
+                      className="inline-flex p-2 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-emerald-400/60 dark:border-emerald-400/50 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20"
                       whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.3 } }}
                     >
-                      <featureIcons.zap className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+                      <featureIcons.zap className="w-5 h-5 text-emerald-500 dark:text-emerald-400 drop-shadow-lg" />
                     </motion.div>
                   </div>
                   
                   {/* Value */}
-                  <div className="relative z-10 text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 dark:from-emerald-500 dark:to-green-600 bg-clip-text text-transparent mb-1">
+                  <div className="relative z-10 text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-1">
                     {totalXP.toLocaleString()}
                   </div>
                   

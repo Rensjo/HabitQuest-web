@@ -29,11 +29,11 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
     >
       <motion.div 
         className="
-          bg-white/85 dark:bg-neutral-900/75
-          backdrop-blur-md
-          border border-neutral-200/60 dark:border-neutral-700/40
+          bg-neutral-100/80 dark:bg-neutral-900/80
+          backdrop-blur-sm
+          border border-emerald-400/60 dark:border-emerald-400/40
           rounded-2xl p-6 text-center
-          shadow-lg shadow-black/5 dark:shadow-black/20
+          shadow-xl shadow-emerald-500/20 dark:shadow-emerald-500/10
           relative overflow-hidden
           cursor-pointer group
         "
@@ -48,21 +48,21 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
         }}
         whileTap={{ scale: 0.95, y: 0 }}
       >
-        {/* Emerald Theme Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-green-500/10 dark:from-emerald-500/12 dark:to-green-500/12 rounded-2xl group-hover:from-emerald-500/20 group-hover:to-green-500/20 transition-colors duration-100"></div>
+        {/* Neutral Background with Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-emerald-500/20 group-hover:shadow-lg transition-all duration-300"></div>
         
         {/* Icon Container */}
         <div className="relative z-10 mb-4">
           <motion.div 
-            className="inline-flex p-3 rounded-xl bg-gradient-to-br from-emerald-400/25 to-green-500/25 dark:from-emerald-400/20 dark:to-green-500/20 border border-emerald-200/40 dark:border-transparent"
+            className="inline-flex p-3 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-emerald-400/60 dark:border-emerald-400/50 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20"
             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1, transition: { duration: 0.3 } }}
           >
-            <featureIcons.checkCircle className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
+            <featureIcons.checkCircle className="w-6 h-6 text-emerald-500 dark:text-emerald-400 drop-shadow-lg" />
           </motion.div>
         </div>
         
         {/* Value */}
-        <div className="relative z-10 text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 dark:from-emerald-500 dark:to-green-600 bg-clip-text text-transparent mb-2">
+        <div className="relative z-10 text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
           {habitStats.completedToday}
         </div>
         
@@ -72,11 +72,11 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
 
       <motion.div 
         className="
-          bg-white/85 dark:bg-neutral-900/75
-          backdrop-blur-md
-          border border-neutral-200/60 dark:border-neutral-700/40
+          bg-neutral-100/80 dark:bg-neutral-900/80
+          backdrop-blur-sm
+          border border-blue-400/60 dark:border-blue-400/40
           rounded-2xl p-6 text-center
-          shadow-lg shadow-black/5 dark:shadow-black/20
+          shadow-xl shadow-blue-500/20 dark:shadow-blue-500/10
           relative overflow-hidden
           cursor-pointer group
         "
@@ -91,21 +91,21 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
         }}
         whileTap={{ scale: 0.95, y: 0 }}
       >
-        {/* Blue Theme Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 dark:from-blue-500/12 dark:to-cyan-500/12 rounded-2xl group-hover:from-blue-500/20 group-hover:to-cyan-500/20 transition-colors duration-100"></div>
+        {/* Neutral Background with Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-blue-500/20 group-hover:shadow-lg transition-all duration-300"></div>
         
         {/* Icon Container */}
         <div className="relative z-10 mb-4">
           <motion.div 
-            className="inline-flex p-3 rounded-xl bg-gradient-to-br from-blue-400/25 to-cyan-500/25 dark:from-blue-400/20 dark:to-cyan-500/20 border border-blue-200/40 dark:border-transparent"
+            className="inline-flex p-3 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-blue-400/60 dark:border-blue-400/50 shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20"
             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1, transition: { duration: 0.3 } }}
           >
-            <featureIcons.calendar className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+            <featureIcons.calendar className="w-6 h-6 text-blue-500 dark:text-blue-400 drop-shadow-lg" />
           </motion.div>
         </div>
         
         {/* Value */}
-        <div className="relative z-10 text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-700 dark:from-blue-500 dark:to-cyan-600 bg-clip-text text-transparent mb-2">
+        <div className="relative z-10 text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
           {habitStats.totalToday}
         </div>
         
@@ -116,15 +116,13 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
       </motion.div>
 
       <motion.div 
-        className="
-          bg-white/85 dark:bg-neutral-900/75
-          backdrop-blur-md
-          border border-neutral-200/60 dark:border-neutral-700/40
-          rounded-2xl p-6 text-center
-          shadow-lg shadow-black/5 dark:shadow-black/20
-          relative overflow-hidden
-          cursor-pointer group
-        "
+        className={`bg-neutral-100/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-6 text-center relative overflow-hidden cursor-pointer group ${
+          habitStats.completionRate >= 70 
+            ? "border border-emerald-400/60 dark:border-emerald-400/40 shadow-xl shadow-emerald-500/20 dark:shadow-emerald-500/10"
+            : habitStats.completionRate >= 40
+            ? "border border-amber-400/60 dark:border-amber-400/40 shadow-xl shadow-amber-500/20 dark:shadow-amber-500/10"
+            : "border border-red-400/60 dark:border-red-400/40 shadow-xl shadow-red-500/20 dark:shadow-red-500/10"
+        }`}
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.4, type: "spring", stiffness: 400, damping: 17 }}
@@ -136,25 +134,19 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
         }}
         whileTap={{ scale: 0.95, y: 0 }}
       >
-        {/* Dynamic Theme Background based on completion rate */}
-        <div className={`absolute inset-0 rounded-2xl ${
-          habitStats.completionRate >= 70 
-            ? "bg-gradient-to-br from-emerald-500/10 to-green-500/10 dark:from-emerald-500/12 dark:to-green-500/12"
-            : habitStats.completionRate >= 40
-            ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-500/12 dark:to-orange-500/12"
-            : "bg-gradient-to-br from-red-500/10 to-rose-500/10 dark:from-red-500/12 dark:to-rose-500/12"
-        }`}></div>
+        {/* Neutral Background with Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-lg transition-all duration-300"></div>
         
         {/* Icon Container */}
         <div className="relative z-10 mb-4">
-          <div className={`inline-flex p-3 rounded-xl border border-opacity-40 dark:border-transparent ${
+          <div className={`inline-flex p-3 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border shadow-lg ${
             habitStats.completionRate >= 70 
-              ? "bg-gradient-to-br from-emerald-400/25 to-green-500/25 dark:from-emerald-400/20 dark:to-green-500/20 border-emerald-200"
+              ? "border-emerald-400/60 dark:border-emerald-400/50 shadow-emerald-500/30 dark:shadow-emerald-500/20"
               : habitStats.completionRate >= 40
-              ? "bg-gradient-to-br from-amber-400/25 to-orange-500/25 dark:from-amber-400/20 dark:to-orange-500/20 border-amber-200"
-              : "bg-gradient-to-br from-red-400/25 to-rose-500/25 dark:from-red-400/20 dark:to-rose-500/20 border-red-200"
+              ? "border-amber-400/60 dark:border-amber-400/50 shadow-amber-500/30 dark:shadow-amber-500/20"
+              : "border-red-400/60 dark:border-red-400/50 shadow-red-500/30 dark:shadow-red-500/20"
           }`}>
-            <featureIcons.trending className={`w-6 h-6 ${
+            <featureIcons.trending className={`w-6 h-6 drop-shadow-lg ${
               habitStats.completionRate >= 70 ? "text-emerald-500 dark:text-emerald-400"
               : habitStats.completionRate >= 40 ? "text-amber-500 dark:text-amber-400"
               : "text-red-500 dark:text-red-400"
@@ -163,13 +155,7 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
         </div>
         
         {/* Value */}
-        <div className={`relative z-10 text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent mb-2 ${
-          habitStats.completionRate >= 70 
-            ? "from-emerald-600 to-green-700 dark:from-emerald-500 dark:to-green-600"
-            : habitStats.completionRate >= 40
-            ? "from-amber-600 to-orange-700 dark:from-amber-500 dark:to-orange-600"
-            : "from-red-600 to-rose-700 dark:from-red-500 dark:to-rose-600"
-        }`}>
+        <div className="relative z-10 text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
           {habitStats.completionRate}%
         </div>
         
@@ -179,11 +165,11 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
 
       <motion.div 
         className="
-          bg-white/85 dark:bg-neutral-900/75
-          backdrop-blur-md
-          border border-neutral-200/60 dark:border-neutral-700/40
+          bg-neutral-100/80 dark:bg-neutral-900/80
+          backdrop-blur-sm
+          border border-orange-400/60 dark:border-orange-400/40
           rounded-2xl p-6 text-center
-          shadow-lg shadow-black/5 dark:shadow-black/20
+          shadow-xl shadow-orange-500/20 dark:shadow-orange-500/10
           relative overflow-hidden
           cursor-pointer group
         "
@@ -198,21 +184,21 @@ export const DailyStatsOverview: React.FC<DailyStatsOverviewProps> = ({
         }}
         whileTap={{ scale: 0.95, y: 0 }}
       >
-        {/* Orange Theme Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/12 dark:to-red-500/12 rounded-2xl group-hover:from-orange-500/20 group-hover:to-red-500/20 transition-colors duration-100"></div>
+        {/* Neutral Background with Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-100/20 to-neutral-200/20 dark:from-neutral-700/20 dark:to-neutral-800/20 rounded-2xl group-hover:shadow-orange-500/20 group-hover:shadow-lg transition-all duration-300"></div>
         
         {/* Icon Container */}
         <div className="relative z-10 mb-4">
           <motion.div 
-            className="inline-flex p-3 rounded-xl bg-gradient-to-br from-orange-400/25 to-red-500/25 dark:from-orange-400/20 dark:to-red-500/20 border border-orange-200/40 dark:border-transparent"
+            className="inline-flex p-3 rounded-xl bg-neutral-100/40 dark:bg-neutral-700/40 border border-orange-400/60 dark:border-orange-400/50 shadow-lg shadow-orange-500/30 dark:shadow-orange-500/20"
             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1, transition: { duration: 0.3 } }}
           >
-            <featureIcons.flame className="w-6 h-6 text-orange-500 dark:text-orange-400" />
+            <featureIcons.flame className="w-6 h-6 text-orange-500 dark:text-orange-400 drop-shadow-lg" />
           </motion.div>
         </div>
         
         {/* Value */}
-        <div className="relative z-10 text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-700 dark:from-orange-500 dark:to-red-600 bg-clip-text text-transparent mb-2">
+        <div className="relative z-10 text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-2">
           {habitStats.averageStreak}
         </div>
         

@@ -4,7 +4,7 @@ import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 import { generateHabitKey } from '../../utils/keyUtils';
 import { classNames } from '../../utils';
-import type { Habit, DayInsights } from '../../types';
+import type { DayInsights } from '../../types';
 
 interface DayInsightsModalProps {
   isOpen: boolean;

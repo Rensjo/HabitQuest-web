@@ -13,6 +13,7 @@ export type Frequency = typeof FREQUENCIES[number];
 export type Habit = {
   id: string;
   title: string;
+  description?: string;
   frequency: Frequency;
   category: string;
   xpOnComplete: number;
@@ -102,4 +103,43 @@ export type ThemeColors = {
   success: string;
   warning: string;
   error: string;
+};
+
+// Additional types for missing definitions
+export type Goal = {
+  id: string;
+  title: string;
+  description: string;
+  targetXP: number;
+  currentXP: number;
+  category: string;
+  deadline?: string;
+  completed: boolean;
+};
+
+export type DayInsights = {
+  date: string;
+  totalHabits: number;
+  completedHabits: number;
+  totalCount: number;
+  completedCount: number;
+  completionRate: number;
+  totalXP: number;
+  xpEarned: number;
+  habitsForDay: Array<Habit>;
+  categoryBreakdown: Record<string, {
+    total: number;
+    completed: number;
+    xp: number;
+  }>;
+};
+
+export type InventoryItem = {
+  id: string;
+  name: string;
+  cost: number;
+  redeemedAt: string;
+  description?: string;
+  icon?: string;
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
 };

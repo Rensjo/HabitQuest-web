@@ -142,7 +142,7 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                     setShowStatusPanel(!showStatusPanel);
                     playButtonClick();
                   }}
-                  className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white rounded-xl p-2 transition-all duration-200"
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl p-2 transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   title="Status & Achievements"
@@ -216,27 +216,27 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 transition={{ duration: 0.3 }}
               >
-              {/* Academic Quest Gradient Background */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-600/8 via-blue-600/8 to-violet-600/8 dark:from-purple-600/10 dark:via-blue-600/10 dark:to-violet-600/10"></div>
+              {/* Green/Emerald Theme Gradient Background */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/8 via-emerald-500/8 to-teal-500/8 dark:from-green-500/10 dark:via-emerald-500/10 dark:to-teal-500/10"></div>
               
               {/* Floating Gradient Orbs */}
               <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-purple-400/25 to-violet-600/25 dark:from-purple-400/20 dark:to-violet-600/20 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-blue-400/25 to-cyan-600/25 dark:from-blue-400/20 dark:to-cyan-600/20 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-purple-600/20 dark:from-pink-400/15 dark:to-purple-600/15 rounded-full blur-2xl"></div>
+                <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-green-400/25 to-emerald-600/25 dark:from-green-400/20 dark:to-emerald-600/20 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-emerald-400/25 to-teal-600/25 dark:from-emerald-400/20 dark:to-teal-600/20 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-cyan-400/20 to-green-600/20 dark:from-cyan-400/15 dark:to-green-600/15 rounded-full blur-2xl"></div>
               </div>
               <div className="relative z-10">
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <motion.div
-                    className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 dark:from-purple-500/20 dark:to-violet-500/20 backdrop-blur-sm border border-purple-200/30 dark:border-transparent"
+                    className="p-3 rounded-2xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 dark:from-green-500/20 dark:to-emerald-500/20 backdrop-blur-sm border border-green-200/30 dark:border-transparent"
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <TrophyIcon size={iconSizes.lg} className="text-amber-500 dark:text-amber-400" />
+                    <TrophyIcon size={iconSizes.lg} className="text-green-500 dark:text-green-400" />
                   </motion.div>
                 </div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-blue-700 to-violet-700 dark:from-purple-600 dark:via-blue-600 dark:to-violet-600 bg-clip-text text-transparent mb-2">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 dark:from-green-600 dark:via-emerald-600 dark:to-teal-600 bg-clip-text text-transparent mb-2">
                   Adventurer Status
                 </h2>
                 <p className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Level 46 Academic Explorer</p>
@@ -260,7 +260,7 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                   </div>
                   <div className="h-3 bg-neutral-300/50 dark:bg-neutral-700/50 rounded-full overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-violet-500 rounded-full relative"
+                      className="h-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-full relative"
                       initial={{ width: 0 }}
                       animate={{ width: `${levelProgress}%` }}
                       transition={{ duration: 1.5 }}

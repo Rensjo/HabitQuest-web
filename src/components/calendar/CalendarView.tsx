@@ -60,7 +60,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <SoundButton
             variant="outline"
             size="sm"
-            onClick={onDayInsights}
+            onClick={() => onDayInsights(selectedDate)}
             className="hidden md:inline-flex"
             icon="calendar"
           >
