@@ -78,28 +78,30 @@ jobs:
         # Check if builds succeeded and find the correct paths
         echo "Checking build outputs..."
         
-        # Check if target directory exists
-        if [ ! -d "target" ]; then
-          echo "Error: target directory does not exist. Tauri builds may have failed."
+        # Check if target directory exists (Tauri builds to src-tauri/target)
+        if [ ! -d "src-tauri/target" ]; then
+          echo "Error: src-tauri/target directory does not exist. Tauri builds may have failed."
           echo "Checking for any build artifacts..."
           find . -name "*.app" -type d 2>/dev/null || echo "No .app directories found"
           find . -name "HabitQuest*" -type f 2>/dev/null || echo "No HabitQuest files found"
           exit 1
         fi
         
+        echo "Found Tauri target directory at src-tauri/target"
+        
         echo "Target directory exists. Checking contents..."
         echo "Full target directory structure:"
-        find target -type f -name "HabitQuest*" | head -20
+        find src-tauri/target -type f -name "HabitQuest*" | head -20
         echo ""
         echo "Looking for .app directories:"
-        find target -name "HabitQuest.app" -type d
+        find src-tauri/target -name "HabitQuest.app" -type d
         echo ""
         echo "Looking for binary files:"
-        find target -name "HabitQuest" -type f
+        find src-tauri/target -name "HabitQuest" -type f
         
         # Find the actual binary paths
-        INTEL_BINARY=$(find target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
-        SILICON_BINARY=$(find target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
         
         echo "Intel binary: $INTEL_BINARY"
         echo "Silicon binary: $SILICON_BINARY"
@@ -116,17 +118,17 @@ jobs:
         fi
         
         # Create universal binary directory
-        mkdir -p target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS
+        mkdir -p src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS
         
         # Create universal binary
-        lipo -create -output target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+        lipo -create -output src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
           "$INTEL_BINARY" \
           "$SILICON_BINARY"
         
         # Copy the Intel app bundle as base and replace the binary
-        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app target/universal-apple-darwin/release/bundle/macos/
-        cp target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
-           target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
+        cp -r src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app src-tauri/target/universal-apple-darwin/release/bundle/macos/
+        cp src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+           src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
         
         echo "Universal binary created successfully"
           
@@ -136,7 +138,7 @@ jobs:
         brew install create-dmg
         
         # Verify the universal app exists
-        if [ ! -d "target/universal-apple-darwin/release/bundle/macos/HabitQuest.app" ]; then
+        if [ ! -d "src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app" ]; then
           echo "Error: Universal app not found. Cannot create DMG."
           exit 1
         fi
@@ -160,7 +162,7 @@ jobs:
           --hide-extension "HabitQuest.app" \
           --app-drop-link 425 120 \
           "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" \
-          "target/universal-apple-darwin/release/bundle/macos/"
+          "src-tauri/target/universal-apple-darwin/release/bundle/macos/"
           
     - name: Create package folders
       run: |
@@ -184,9 +186,9 @@ jobs:
         fi
         
         # Find and copy individual architecture builds
-        INTEL_APP=$(find target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -type d | head -1)
-        SILICON_APP=$(find target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -type d | head -1)
-        UNIVERSAL_APP="target/universal-apple-darwin/release/bundle/macos/HabitQuest.app"
+        INTEL_APP=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -type d | head -1)
+        SILICON_APP=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -type d | head -1)
+        UNIVERSAL_APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app"
         
         echo "Intel app: $INTEL_APP"
         echo "Silicon app: $SILICON_APP"
