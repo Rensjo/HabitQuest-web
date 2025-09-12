@@ -15,7 +15,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Card } from './Card';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../../hooks/useTheme.tsx';
 
 interface StatCardProps {
   title: string;

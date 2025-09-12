@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme.tsx';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { Icon } from './ui/Icon';

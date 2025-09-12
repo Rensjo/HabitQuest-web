@@ -7,6 +7,7 @@ interface ThemeContextType {
   colors: ThemeColors;
   gradientColors: string[];
   toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setGradientColors: (colors: string[]) => void;
 }
 
@@ -57,6 +58,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     updateSettings({ theme: newTheme });
   };
 
+  const setTheme = (theme: 'light' | 'dark' | 'system') => {
+    updateSettings({ theme });
+  };
+
   const setGradientColors = (gradientColors: string[]) => {
     updateSettings({ gradientColors });
   };
@@ -89,6 +94,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     colors,
     gradientColors: settings.gradientColors,
     toggleTheme,
+    setTheme,
     setGradientColors,
   };
 

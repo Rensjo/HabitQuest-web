@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../../hooks/useTheme.tsx';
 import { useAppStore } from '../../store/appStore';
 
 interface SettingsModalProps {
@@ -397,7 +397,7 @@ export function SettingsModal({
                             onClick={() => handleAccentColorChange(accent.color)}
                             className={`
                               w-8 h-8 rounded-full ${accent.class}
-                              ${gradientColors[0] === (accent.color === 'blue' ? '#3b82f6' : 
+                              ${gradientColors && gradientColors[0] === (accent.color === 'blue' ? '#3b82f6' : 
                                 accent.color === 'emerald' ? '#10b981' :
                                 accent.color === 'purple' ? '#8b5cf6' :
                                 accent.color === 'amber' ? '#f59e0b' :

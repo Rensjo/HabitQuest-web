@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../../hooks/useTheme.tsx';
 
 interface AnimatedBackgroundProps {
   className?: string;
