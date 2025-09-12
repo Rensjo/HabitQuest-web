@@ -38,33 +38,25 @@ export function AddCategoryModal({
         onClick={(e) => e.stopPropagation()}
         className="
           w-full max-w-lg
-          bg-white/95 dark:bg-neutral-900/60
-          backdrop-blur-md
-          border border-neutral-200/50 dark:border-0
+          bg-white/90 dark:bg-neutral-900/90
+          backdrop-blur-xl
+          border border-white/20 dark:border-neutral-700/30
           rounded-3xl p-8 
-          shadow-xl shadow-black/10 dark:shadow-black/40
+          shadow-2xl shadow-black/20 dark:shadow-black/40
           relative overflow-hidden
         "
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
-          ...(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? {
-            background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.8) 100%)'
-          } : {})
-        }}
         initial={{ y: 20, opacity: 0, scale: 0.9 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 20, opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
-        {/* Emerald/Cyan Theme Gradient Background */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/8 via-cyan-500/8 to-teal-500/8 dark:from-emerald-500/10 dark:via-cyan-500/10 dark:to-teal-500/10"></div>
+        {/* Emerald/Cyan Theme Gradient Background - Matching Shop Design */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-teal-500/10 dark:from-emerald-500/15 dark:via-cyan-500/10 dark:to-teal-500/15"></div>
         
-        {/* Floating Gradient Orbs */}
-        <div className="absolute inset-0 overflow-hidden rounded-3xl">
-          <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-emerald-400/25 to-cyan-600/25 dark:from-emerald-400/20 dark:to-cyan-600/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-cyan-400/25 to-teal-600/25 dark:from-cyan-400/20 dark:to-teal-600/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-green-400/20 to-emerald-600/20 dark:from-green-400/15 dark:to-emerald-600/15 rounded-full blur-2xl"></div>
-        </div>
+        {/* Floating Gradient Orbs - Matching Shop Design */}
+        <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 dark:from-emerald-400/15 dark:to-cyan-400/15 rounded-full blur-2xl"></div>
+        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-cyan-400/15 to-teal-400/15 dark:from-cyan-400/10 dark:to-teal-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/3 -right-8 w-20 h-20 bg-gradient-to-br from-green-400/10 to-emerald-400/10 dark:from-green-400/5 dark:to-emerald-400/5 rounded-full blur-xl"></div>
 
         <div className="relative z-10">
           {/* Header */}
@@ -85,7 +77,7 @@ export function AddCategoryModal({
           </div>
 
           {/* Form Content */}
-          <div className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30">
+          <div className="bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-700/50">
             <div className="space-y-5">
               {/* Category Name Input */}
               <div>

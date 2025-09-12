@@ -341,7 +341,7 @@ export default function HabitGoalTrackerV3() {
               bg-gradient-to-br from-blue-500 to-purple-600
               hover:from-blue-600 hover:to-purple-700
               text-white font-semibold
-              px-6 py-3 rounded-2xl
+              px-6 py-3 rounded-3xl
               shadow-lg hover:shadow-xl
               transition-all duration-300
               flex items-center gap-3
@@ -364,7 +364,7 @@ export default function HabitGoalTrackerV3() {
             </div>
 
             {/* Hover Effect Border */}
-            <div className="absolute inset-0 rounded-2xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-300" />
+            <div className="absolute inset-0 rounded-3xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-300" />
           </motion.button>
         </motion.div>
         </DynamicContainer>

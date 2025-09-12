@@ -1,8 +1,10 @@
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 import { useTheme } from '../../hooks/useTheme.tsx';
 import { useAppStore } from '../../store/appStore';
+import { calculateStorageHealth, formatBytes, getStorageHealthColor, getStorageHealthBgColor, cleanupCacheData, type StorageHealth } from '../../utils/storageHealth';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -32,6 +34,10 @@ export function SettingsModal({
   const { playButtonClick: playClick } = useSoundEffectsOnly();
   const { theme, setTheme, gradientColors, setGradientColors } = useTheme();
   const { exportData, importData, resetData } = useAppStore();
+  
+  // Storage health state
+  const [storageHealth, setStorageHealth] = useState<StorageHealth | null>(null);
+  const [isRefreshingStorage, setIsRefreshingStorage] = useState(false);
 
   const handleClose = () => {
     playClick();
@@ -98,6 +104,38 @@ export function SettingsModal({
       onClose();
     }
   };
+
+  // Storage health functions
+  const refreshStorageHealth = async () => {
+    setIsRefreshingStorage(true);
+    try {
+      const health = calculateStorageHealth();
+      setStorageHealth(health);
+    } catch (error) {
+      console.error('Error calculating storage health:', error);
+    } finally {
+      setIsRefreshingStorage(false);
+    }
+  };
+
+  const handleCleanupCache = async () => {
+    playClick();
+    try {
+      const cleanedBytes = cleanupCacheData();
+      await refreshStorageHealth();
+      // You could show a toast notification here
+      console.log(`Cleaned up ${formatBytes(cleanedBytes)} of cache data`);
+    } catch (error) {
+      console.error('Error cleaning cache:', error);
+    }
+  };
+
+  // Load storage health on mount and when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      refreshStorageHealth();
+    }
+  }, [isOpen]);
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     playClick();
@@ -503,13 +541,13 @@ export function SettingsModal({
                     {/* Export Data */}
                     <motion.button
                       onClick={handleExport}
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 border border-green-200/30 dark:border-green-600/30 hover:from-green-500/20 hover:to-emerald-500/20 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 transition-all duration-200"
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/15 to-emerald-500/15 dark:from-green-500/30 dark:to-emerald-500/30 border border-green-300/60 dark:border-green-500/60 hover:from-green-500/25 hover:to-emerald-500/25 dark:hover:from-green-500/40 dark:hover:to-emerald-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-green-500/10 dark:shadow-green-500/20"
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-green-500/10 dark:bg-green-500/20">
-                          <featureIcons.download className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <div className="p-2 rounded-lg bg-green-500/15 dark:bg-green-500/30">
+                          <featureIcons.download className="w-4 h-4 text-green-600 dark:text-green-300" />
                         </div>
                         <div className="text-left">
                           <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Export Data</div>
@@ -530,13 +568,13 @@ export function SettingsModal({
                       />
                       <motion.button
                         onClick={() => document.getElementById('import-file')?.click()}
-                        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20 border border-blue-200/30 dark:border-blue-600/30 hover:from-blue-500/20 hover:to-cyan-500/20 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 transition-all duration-200"
+                        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/15 to-cyan-500/15 dark:from-blue-500/30 dark:to-cyan-500/30 border border-blue-300/60 dark:border-blue-500/60 hover:from-blue-500/25 hover:to-cyan-500/25 dark:hover:from-blue-500/40 dark:hover:to-cyan-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-blue-500/10 dark:shadow-blue-500/20"
                         whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                       >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-blue-500/10 dark:bg-blue-500/20">
-                          <featureIcons.upload className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <div className="p-2 rounded-lg bg-blue-500/15 dark:bg-blue-500/30">
+                          <featureIcons.upload className="w-4 h-4 text-blue-600 dark:text-blue-300" />
                         </div>
                         <div className="text-left">
                           <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Import Data</div>
@@ -550,13 +588,13 @@ export function SettingsModal({
                     {/* Reset Data */}
                     <motion.button
                       onClick={handleReset}
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-rose-500/10 dark:from-red-500/20 dark:to-rose-500/20 border border-red-200/30 dark:border-red-600/30 hover:from-red-500/20 hover:to-rose-500/20 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 transition-all duration-200"
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-red-500/15 to-rose-500/15 dark:from-red-500/30 dark:to-rose-500/30 border border-red-300/60 dark:border-red-500/60 hover:from-red-500/25 hover:to-rose-500/25 dark:hover:from-red-500/40 dark:hover:to-rose-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-red-500/10 dark:shadow-red-500/20"
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-red-500/10 dark:bg-red-500/20">
-                          <featureIcons.trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <div className="p-2 rounded-lg bg-red-500/15 dark:bg-red-500/30">
+                          <featureIcons.trash2 className="w-4 h-4 text-red-600 dark:text-red-300" />
                         </div>
                         <div className="text-left">
                           <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Reset All Data</div>
@@ -566,6 +604,144 @@ export function SettingsModal({
                       <featureIcons.chevronRight className="w-4 h-4 text-red-600 dark:text-red-400" />
                     </motion.button>
                   </div>
+                </motion.div>
+
+                {/* Storage Health Section */}
+                <motion.div 
+                  className="bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-700/50"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                      <featureIcons.hardDrive className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+                      Storage Health
+                    </h3>
+                    <motion.button
+                      onClick={refreshStorageHealth}
+                      disabled={isRefreshingStorage}
+                      className="p-2 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/30 transition-all duration-200 disabled:opacity-50"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <featureIcons.refreshCw className={`w-4 h-4 text-indigo-600 dark:text-indigo-400 ${isRefreshingStorage ? 'animate-spin' : ''}`} />
+                    </motion.button>
+                  </div>
+
+                  {storageHealth ? (
+                    <div className="space-y-4">
+                      {/* Storage Status */}
+                      <div className={`p-4 rounded-xl border ${getStorageHealthBgColor(storageHealth.healthStatus)}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                            Storage Status
+                          </span>
+                          <span className={`text-sm font-semibold capitalize ${getStorageHealthColor(storageHealth.healthStatus)}`}>
+                            {storageHealth.healthStatus}
+                          </span>
+                        </div>
+                        <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 mb-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              storageHealth.healthStatus === 'excellent' ? 'bg-green-500' :
+                              storageHealth.healthStatus === 'good' ? 'bg-blue-500' :
+                              storageHealth.healthStatus === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${Math.min(storageHealth.usagePercentage, 100)}%` }}
+                          />
+                        </div>
+                        <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                          {formatBytes(storageHealth.totalUsed)} used of {formatBytes(storageHealth.totalUsed + storageHealth.totalAvailable)} total
+                        </div>
+                      </div>
+
+                      {/* Storage Breakdown */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Storage Breakdown</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Habits</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.habits)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Categories</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.categories)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Progress</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.progress)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Settings</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.settings)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Cache</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.cache)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-100/50 dark:bg-neutral-700/50">
+                            <span className="text-sm text-neutral-700 dark:text-neutral-300">Other</span>
+                            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                              {formatBytes(storageHealth.breakdown.other)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Recommendations */}
+                      {storageHealth.recommendations.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Recommendations</h4>
+                          <div className="space-y-1">
+                            {storageHealth.recommendations.map((recommendation, index) => (
+                              <div key={index} className="text-xs text-neutral-600 dark:text-neutral-400 flex items-start gap-2">
+                                <featureIcons.info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                {recommendation}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cache Cleanup Button */}
+                      {storageHealth.breakdown.cache > 0 && (
+                        <motion.button
+                          onClick={handleCleanupCache}
+                          className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-orange-500/15 to-amber-500/15 dark:from-orange-500/25 dark:to-amber-500/25 border border-orange-300/60 dark:border-orange-500/60 hover:from-orange-500/25 hover:to-amber-500/25 dark:hover:from-orange-500/35 dark:hover:to-amber-500/35 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-orange-500/10 dark:shadow-orange-500/20"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <featureIcons.trash2 className="w-4 h-4 text-orange-600 dark:text-orange-300" />
+                          <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                            Clean Cache ({formatBytes(storageHealth.breakdown.cache)})
+                          </span>
+                        </motion.button>
+                      )}
+
+                      {/* Last Updated */}
+                      <div className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
+                        Last updated: {storageHealth.lastUpdated.toLocaleTimeString()}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <featureIcons.loader2 className="w-6 h-6 text-neutral-400 animate-spin mx-auto mb-2" />
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">Loading storage health...</p>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             </div>

@@ -19,9 +19,8 @@ export class SoundService {
   }
 
   private initializeAudio() {
-    if (typeof window !== 'undefined' && !this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
+    // Don't initialize AudioContext immediately - wait for user interaction
+    // This will be called from playSound when needed
   }
 
   public updateConfig(newConfig: Partial<SoundConfig>) {
@@ -36,8 +35,17 @@ export class SoundService {
   public playSound(soundType: string) {
     if (!this.config.audioEnabled) return;
 
-    // Initialize AudioContext if needed and resume if suspended
-    this.initializeAudio();
+    // Initialize AudioContext only when needed and after user interaction
+    if (!this.audioContext && typeof window !== 'undefined') {
+      try {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch (error) {
+        console.warn('Could not create AudioContext:', error);
+        return;
+      }
+    }
+
+    // Resume AudioContext if suspended
     if (this.audioContext && this.audioContext.state === 'suspended') {
       this.audioContext.resume().catch(() => {
         console.warn('Could not resume AudioContext');
@@ -149,8 +157,13 @@ export class SoundService {
   }
 
   public async initializeAudioContext() {
-    if (!this.audioContext) {
-      this.initializeAudio();
+    if (!this.audioContext && typeof window !== 'undefined') {
+      try {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch (error) {
+        console.warn('Could not create AudioContext:', error);
+        return;
+      }
     }
     if (this.audioContext && this.audioContext.state === 'suspended') {
       try {
