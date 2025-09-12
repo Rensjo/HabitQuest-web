@@ -1,254 +1,322 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useAppStore } from '../../store/appStore';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Icon } from '../ui/Icon';
-import { FREQUENCIES } from '../../types';
-import type { Frequency } from '../../types';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { FREQUENCIES } from "../../constants";
+import { classNames } from "../../utils";
+import { featureIcons } from "../../utils/icons";
+import { useSoundEffectsOnly } from "../../hooks/useSoundEffects";
+import type { Frequency, Habit } from "../../types";
 
-interface AddHabitModalProps {
-  isOpen: boolean;
+export function AddHabitModal({
+  onClose,
+  onSave,
+  categories,
+}: {
   onClose: () => void;
-}
-
-const categoryIcons: Record<string, string> = {
-  'CAREER': 'briefcase',
-  'CREATIVE': 'palette',
-  'FINANCIAL': 'dollar',
-  'PERSONAL DEVELOPMENT': 'brain',
-  'RELATIONSHIPS': 'heart',
-  'SPIRITUAL': 'star',
-};
-
-const categoryColors: Record<string, string> = {
-  'CAREER': '#3b82f6',
-  'CREATIVE': '#8b5cf6',
-  'FINANCIAL': '#10b981',
-  'PERSONAL DEVELOPMENT': '#f59e0b',
-  'RELATIONSHIPS': '#ef4444',
-  'SPIRITUAL': '#06b6d4',
-};
-
-export function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
-  const { addHabit, categories } = useAppStore();
-  
-  const [title, setTitle] = useState('');
-  const [frequency, setFrequency] = useState<Frequency>('daily');
-  const [category, setCategory] = useState<string>(categories[0] || '');
+  onSave: (h: Partial<Habit>) => void;
+  categories: string[];
+}) {
+  const [title, setTitle] = useState("");
+  const [frequency, setFrequency] = useState<Frequency>("daily");
+  const [category, setCategory] = useState<string>(categories[0] || "");
+  const { playButtonClick, playHover } = useSoundEffectsOnly();
   const [xpOnComplete, setXpOnComplete] = useState(10);
   const [isRecurring, setIsRecurring] = useState(true);
-  const [specificDate, setSpecificDate] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('target');
-  const [selectedColor, setSelectedColor] = useState('#10b981');
+  const [specificDate, setSpecificDate] = useState<string>("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    
     if (!title.trim()) return;
-    
-    addHabit({
-      title: title.trim(),
+    playButtonClick();
+    onSave({
+      title,
       frequency,
       category,
       xpOnComplete,
       isRecurring,
-      specificDate: isRecurring ? null : (specificDate || null),
-      icon: selectedIcon,
-      color: selectedColor,
+      specificDate: isRecurring ? null : specificDate || null,
     });
-    
-    // Reset form
-    setTitle('');
-    setFrequency('daily');
-    setCategory(categories[0] || '');
-    setXpOnComplete(10);
-    setIsRecurring(true);
-    setSpecificDate('');
-    setSelectedIcon('target');
-    setSelectedColor('#10b981');
-    
-    onClose();
-  };
-
-  const iconOptions = [
-    'target', 'dumbbell', 'book', 'brain', 'heart', 'briefcase', 
-    'palette', 'dollar', 'star', 'calendar', 'timer', 'trophy'
-  ];
-
-  const colorOptions = [
-    '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', 
-    '#ef4444', '#06b6d4', '#84cc16', '#f97316'
-  ];
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add New Habit" size="lg">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Habit Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g., 30-minute workout"
-            required
-          />
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+    >
+      <motion.form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        className="
+          w-full max-w-lg
+          bg-white/95 dark:bg-neutral-900/60
+          backdrop-blur-md
+          border border-neutral-200/50 dark:border-0
+          rounded-3xl p-8 
+          shadow-xl shadow-black/10 dark:shadow-black/40
+          relative overflow-hidden
+        "
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
+          ...(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? {
+            background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.8) 100%)'
+          } : {})
+        }}
+        initial={{ y: 20, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 20, opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        {/* Academic Quest Gradient Background */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-600/8 via-blue-600/8 to-violet-600/8 dark:from-purple-600/10 dark:via-blue-600/10 dark:to-violet-600/10"></div>
+        
+        {/* Floating Gradient Orbs */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+          <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-purple-400/25 to-violet-600/25 dark:from-purple-400/20 dark:to-violet-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-blue-400/25 to-cyan-600/25 dark:from-blue-400/20 dark:to-cyan-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-purple-600/20 dark:from-pink-400/15 dark:to-purple-600/15 rounded-full blur-2xl"></div>
         </div>
 
-        {/* Frequency and Category */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Frequency</label>
-            <select
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value as Frequency)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {FREQUENCIES.map((freq) => (
-                <option key={freq} value={freq} className="capitalize">
-                  {freq}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* XP and Type */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">XP Reward</label>
-            <input
-              type="number"
-              value={xpOnComplete}
-              onChange={(e) => setXpOnComplete(Number(e.target.value) || 0)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Type</label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={isRecurring ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setIsRecurring(true)}
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <motion.div
+                className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/30 to-violet-500/30 dark:from-purple-500/20 dark:to-violet-500/20 backdrop-blur-sm border border-purple-200/30 dark:border-transparent"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                Recurring
-              </Button>
-              <Button
-                type="button"
-                variant={!isRecurring ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setIsRecurring(false)}
-              >
-                Specific Date
-              </Button>
+                <featureIcons.sparkles className="w-6 h-6 text-purple-500 dark:text-purple-400" />
+              </motion.div>
             </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 via-blue-700 to-violet-700 dark:from-purple-600 dark:via-blue-600 dark:to-violet-600 bg-clip-text text-transparent mb-2">
+              Create New Habit
+            </h2>
+            <p className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Build consistency and earn XP</p>
           </div>
-        </div>
 
-        {/* Specific Date (if not recurring) */}
-        {!isRecurring && (
-          <div>
-            <label className="block text-sm font-medium mb-2">Specific Date</label>
-            <input
-              type="date"
-              value={specificDate}
-              onChange={(e) => setSpecificDate(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        )}
-
-        {/* Icon Selection */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Icon</label>
-          <div className="grid grid-cols-6 gap-2">
-            {iconOptions.map((icon) => (
-              <button
-                key={icon}
-                type="button"
-                onClick={() => setSelectedIcon(icon)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedIcon === icon
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <Icon name={icon} size={20} />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Color Selection */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Color</label>
-          <div className="flex gap-2 flex-wrap">
-            {colorOptions.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => setSelectedColor(color)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  selectedColor === color
-                    ? 'border-gray-900 dark:border-white scale-110'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`}
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Preview */}
-        <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4">
-          <h4 className="text-sm font-medium mb-2">Preview</h4>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div 
-              className="p-2 rounded-lg" 
-              style={{ backgroundColor: `${selectedColor}20` }}
-            >
-              <Icon name={selectedIcon} size={20} color={selectedColor} />
-            </div>
-            <div>
-              <div className="font-medium">{title || 'Habit Title'}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {category} • {frequency} • {xpOnComplete} XP
+          {/* Form Content */}
+          <div className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30">
+            <div className="space-y-5">
+              {/* Title Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Habit Title
+                </label>
+                <input
+                  className="
+                    w-full rounded-xl px-4 py-3 text-sm
+                    bg-white/80 dark:bg-neutral-800/50
+                    border border-neutral-300/50 dark:border-neutral-600/30
+                    text-neutral-900 dark:text-neutral-100
+                    placeholder-neutral-500 dark:placeholder-neutral-400
+                    focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
+                    backdrop-blur-sm transition-all duration-200
+                  "
+                  placeholder="e.g., 25-min morning workout"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </div>
+
+              {/* Frequency and Category Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Frequency
+                  </label>
+                  <select
+                    className="
+                      w-full rounded-xl px-4 py-3 text-sm
+                      bg-white/80 dark:bg-neutral-800/50
+                      border border-neutral-300/50 dark:border-neutral-600/30
+                      text-neutral-900 dark:text-neutral-100
+                      focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
+                      backdrop-blur-sm transition-all duration-200
+                    "
+                    value={frequency}
+                    onChange={(e) => setFrequency(e.target.value as Frequency)}
+                  >
+                    {FREQUENCIES.map((f) => (
+                      <option key={f} value={f} className="capitalize bg-white dark:bg-neutral-800">{f}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    className="
+                      w-full rounded-xl px-4 py-3 text-sm
+                      bg-white/80 dark:bg-neutral-800/50
+                      border border-neutral-300/50 dark:border-neutral-600/30
+                      text-neutral-900 dark:text-neutral-100
+                      focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
+                      backdrop-blur-sm transition-all duration-200
+                    "
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c} className="bg-white dark:bg-neutral-800">{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* XP and Type Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    XP Reward
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    className="
+                      w-full rounded-xl px-4 py-3 text-sm
+                      bg-white/80 dark:bg-neutral-800/50
+                      border border-neutral-300/50 dark:border-neutral-600/30
+                      text-neutral-900 dark:text-neutral-100
+                      placeholder-neutral-500 dark:placeholder-neutral-400
+                      focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
+                      backdrop-blur-sm transition-all duration-200
+                    "
+                    value={xpOnComplete}
+                    onChange={(e) => setXpOnComplete(Number(e.target.value || 0))}
+                  />
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Points earned on completion</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Type
+                  </label>
+                  <div className="flex gap-2">
+                    <motion.button
+                      type="button"
+                      className={classNames(
+                        "flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                        isRecurring 
+                          ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg border-0" 
+                          : "bg-white/60 dark:bg-neutral-800/40 text-neutral-700 dark:text-neutral-300 border border-neutral-300/50 dark:border-neutral-600/30"
+                      )}
+                      onClick={() => {
+                        setIsRecurring(true);
+                        playButtonClick();
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      onMouseEnter={() => playHover()}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Recurring
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      className={classNames(
+                        "flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                        !isRecurring 
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg border-0" 
+                          : "bg-white/60 dark:bg-neutral-800/40 text-neutral-700 dark:text-neutral-300 border border-neutral-300/50 dark:border-neutral-600/30"
+                      )}
+                      onClick={() => {
+                        setIsRecurring(false);
+                        playButtonClick();
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      onMouseEnter={() => playHover()}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Specific
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Specific Date (conditional) */}
+              {!isRecurring && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Specific Date
+                  </label>
+                  <input
+                    type="date"
+                    className="
+                      w-full rounded-xl px-4 py-3 text-sm
+                      bg-white/80 dark:bg-neutral-800/50
+                      border border-neutral-300/50 dark:border-neutral-600/30
+                      text-neutral-900 dark:text-neutral-100
+                      focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
+                      backdrop-blur-sm transition-all duration-200
+                    "
+                    value={specificDate}
+                    onChange={(e) => setSpecificDate(e.target.value)}
+                  />
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    For weekly/monthly/yearly habits, this anchors the period they belong to.
+                  </p>
+                </motion.div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" icon="plus">
-            Add Habit
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 mt-6">
+            <motion.button
+              type="button"
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+              className="
+                px-6 py-3 rounded-2xl font-medium text-sm
+                bg-white/80 dark:bg-neutral-800/50
+                text-neutral-700 dark:text-neutral-300
+                border border-neutral-300/50 dark:border-neutral-600/30
+                hover:bg-neutral-100/80 dark:hover:bg-neutral-700/50
+                backdrop-blur-sm transition-all duration-200
+              "
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              type="submit"
+              className="
+                relative overflow-hidden px-6 py-3 rounded-2xl font-medium text-sm
+                bg-gradient-to-r from-purple-600 to-violet-600
+                text-white border-0
+                shadow-lg shadow-purple-500/25
+                transition-all duration-300
+              "
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 10px 25px -5px rgba(147, 51, 234, 0.4)"
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 opacity-95"></div>
+              <div className="relative z-10 flex items-center gap-2">
+                <featureIcons.sparkles className="w-4 h-4" />
+                Create Habit
+              </div>
+            </motion.button>
+          </div>
         </div>
-      </form>
-    </Modal>
+      </motion.form>
+    </motion.div>
   );
 }

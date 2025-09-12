@@ -147,3 +147,10 @@ export function getXPToNextLevel(totalXP: number): number {
   const nextLevelXP = Math.pow(currentLevel, 2) * 100;
   return nextLevelXP - totalXP;
 }
+
+// ================================================================================================
+// HABIT UTILITIES
+// ================================================================================================
+
+// Re-export habit utilities
+export * from './habitUtils';

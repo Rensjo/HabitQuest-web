@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { FREQUENCIES } from "../../constants";
 import { classNames } from "../../utils";
 import { featureIcons } from "../../utils/icons";
+import { useSoundEffectsOnly } from "../../hooks/useSoundEffects";
 import type { Frequency, Habit } from "../../types";
 
 // ================================================================================================
@@ -31,6 +32,7 @@ export function AddHabitModal({
   const [title, setTitle] = useState("");
   const [frequency, setFrequency] = useState<Frequency>("daily");
   const [category, setCategory] = useState<string>(categories[0] || "");
+  const { playButtonClick, playHover } = useSoundEffectsOnly();
   const [xpOnComplete, setXpOnComplete] = useState(10);
   const [isRecurring, setIsRecurring] = useState(true);
   const [specificDate, setSpecificDate] = useState<string>("");
@@ -38,6 +40,7 @@ export function AddHabitModal({
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    playButtonClick();
     onSave({
       title,
       frequency,
@@ -54,7 +57,10 @@ export function AddHabitModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
     >
       <motion.form
         onSubmit={submit}
@@ -216,8 +222,12 @@ export function AddHabitModal({
                           ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg border-0" 
                           : "bg-white/60 dark:bg-neutral-800/40 text-neutral-700 dark:text-neutral-300 border border-neutral-300/50 dark:border-neutral-600/30"
                       )}
-                      onClick={() => setIsRecurring(true)}
+                      onClick={() => {
+                        setIsRecurring(true);
+                        playButtonClick();
+                      }}
                       whileHover={{ scale: 1.02 }}
+                      onMouseEnter={() => playHover()}
                       whileTap={{ scale: 0.98 }}
                     >
                       Recurring
@@ -230,8 +240,12 @@ export function AddHabitModal({
                           ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg border-0" 
                           : "bg-white/60 dark:bg-neutral-800/40 text-neutral-700 dark:text-neutral-300 border border-neutral-300/50 dark:border-neutral-600/30"
                       )}
-                      onClick={() => setIsRecurring(false)}
+                      onClick={() => {
+                        setIsRecurring(false);
+                        playButtonClick();
+                      }}
                       whileHover={{ scale: 1.02 }}
+                      onMouseEnter={() => playHover()}
                       whileTap={{ scale: 0.98 }}
                     >
                       Specific
@@ -276,7 +290,10 @@ export function AddHabitModal({
           <div className="flex items-center justify-end gap-3 mt-6">
             <motion.button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
               className="
                 px-6 py-3 rounded-2xl font-medium text-sm
                 bg-white/80 dark:bg-neutral-800/50
@@ -331,10 +348,12 @@ export function AddRewardModal({
 }) {
   const [name, setName] = useState("");
   const [cost, setCost] = useState<number>(100);
+  const { playButtonClick } = useSoundEffectsOnly();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+    playButtonClick();
     onSave({ name, cost: Math.max(1, Number(cost || 1)) });
   }
 
@@ -344,7 +363,10 @@ export function AddRewardModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
     >
       <motion.form
         onSubmit={submit}
@@ -451,7 +473,10 @@ export function AddRewardModal({
           <div className="flex items-center justify-end gap-3 mt-6">
             <motion.button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
               className="
                 px-6 py-3 rounded-2xl font-medium text-sm
                 bg-white/80 dark:bg-neutral-800/50
@@ -497,6 +522,13 @@ export function AddRewardModal({
 // ADD CATEGORY MODAL
 // ================================================================================================
 
+// Export the new modal components
+export { RewardShopModal } from './RewardShopModal';
+export { DayInsightsModal } from './DayInsightsModal';
+export { AnalyticsModal } from './AnalyticsModal';
+export { SettingsModal } from './SettingsModal';
+export { ModalSystem } from './ModalSystem';
+
 export function AddCategoryModal({
   onClose,
   onSave,
@@ -506,10 +538,12 @@ export function AddCategoryModal({
 }) {
   const [name, setName] = useState("");
   const [target, setTarget] = useState<number>(200);
+  const { playButtonClick } = useSoundEffectsOnly();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+    playButtonClick();
     onSave({ name, target });
   }
 
@@ -519,7 +553,10 @@ export function AddCategoryModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
     >
       <motion.form
         onSubmit={submit}
@@ -629,7 +666,10 @@ export function AddCategoryModal({
           <div className="flex items-center justify-end gap-3 mt-6">
             <motion.button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
               className="
                 px-6 py-3 rounded-2xl font-medium text-sm
                 bg-white/80 dark:bg-neutral-800/50
@@ -670,3 +710,4 @@ export function AddCategoryModal({
     </motion.div>
   );
 }
+

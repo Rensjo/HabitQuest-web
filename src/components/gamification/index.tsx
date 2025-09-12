@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/design';
 import { featureIcons, iconSizes } from '../../utils/icons';
+import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 
 interface GamificationStatusProps {
   level: number;
@@ -9,6 +10,7 @@ interface GamificationStatusProps {
   xpToNext: number;
   levelProgress: number;
   streakDays: number;
+  points: number;
   onRewardShopClick: () => void;
   className?: string;
 }
@@ -19,10 +21,12 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
   xpToNext,
   levelProgress,
   streakDays,
+  points,
   onRewardShopClick,
   className,
 }) => {
   const [showStatusPanel, setShowStatusPanel] = useState(false);
+  const { playButtonClick, playHover } = useSoundEffectsOnly();
 
   const CurrentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -111,24 +115,50 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
               </div>
             </div>
 
+            {/* Points Display */}
+            <div className="mb-4">
+              <motion.div 
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg py-2 px-4"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  💰
+                </motion.div>
+                <span className="text-amber-600 dark:text-amber-400 font-bold text-lg">{points.toLocaleString()}</span>
+                <span className="text-amber-500 dark:text-amber-300 text-sm font-medium">Points</span>
+              </motion.div>
+            </div>
+
             {/* Bottom Row - Buttons Left, Streak Right */}
             <div className="flex items-center gap-3">
               {/* Action Buttons - Icon Only - Left Side */}
               <div className="flex gap-2 flex-shrink-0">
                 <motion.button
-                  onClick={() => setShowStatusPanel(!showStatusPanel)}
+                  onClick={() => {
+                    setShowStatusPanel(!showStatusPanel);
+                    playButtonClick();
+                  }}
                   className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white rounded-xl p-2 transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   title="Status & Achievements"
+                  onMouseEnter={() => playHover()}
                 >
                   <TrophyIcon size={iconSizes.sm} />
                 </motion.button>
                 
                 <motion.button
-                  onClick={onRewardShopClick}
+                  onClick={() => {
+                    onRewardShopClick();
+                    playButtonClick();
+                  }}
                   className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl p-2 transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
+                  onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.95 }}
                   title="Reward Shop"
                 >
@@ -246,7 +276,7 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <motion.div 
                     className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-4 text-center border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30"
                     whileHover={{ scale: 1.02, y: -2 }}
@@ -264,6 +294,24 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                     whileHover={{ scale: 1.02, y: -2 }}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-500/30 dark:from-amber-400/20 dark:to-orange-500/20 inline-block mb-3 border border-amber-200/20 dark:border-transparent">
+                      <motion.div
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="text-2xl"
+                      >
+                        💰
+                      </motion.div>
+                    </div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-700 dark:from-amber-500 dark:to-orange-600 bg-clip-text text-transparent">{points.toLocaleString()}</div>
+                    <div className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Points</div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-4 text-center border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
                     <div className="p-3 rounded-xl bg-gradient-to-br from-orange-400/30 to-red-500/30 dark:from-orange-400/20 dark:to-red-500/20 inline-block mb-3 border border-orange-200/20 dark:border-transparent">
                       <FlameIcon size={iconSizes.lg} className="text-orange-500 dark:text-orange-400" />
                     </div>
@@ -274,7 +322,10 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
 
                 {/* Close Button */}
                 <motion.button
-                  onClick={() => setShowStatusPanel(false)}
+                  onClick={() => {
+                    setShowStatusPanel(false);
+                    playButtonClick();
+                  }}
                   className="
                     w-full relative overflow-hidden rounded-2xl px-6 py-3
                     bg-gradient-to-r from-gray-500/90 to-slate-600/90
@@ -287,6 +338,7 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
                     y: -1,
                     boxShadow: "0 10px 25px -5px rgba(107, 114, 128, 0.4)"
                   }}
+                  onMouseEnter={() => playHover()}
                   whileTap={{ scale: 0.98 }}
                 >
                   {/* Gradient Background Overlay */}

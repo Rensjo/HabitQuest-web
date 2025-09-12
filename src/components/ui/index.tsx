@@ -11,6 +11,8 @@ export { ThemeToggle } from './ThemeToggle';
 export { GlowIconButton } from './GlowIconButton';
 export { GlassCard } from './GlassCard';
 export { AnimatedStats } from './AnimatedStats';
+export { SoundButton } from './SoundButton';
+export { Button } from './Button';
 
 interface EnhancedButtonProps {
   children: React.ReactNode;

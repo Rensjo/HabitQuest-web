@@ -13,7 +13,8 @@ import {
   todayISO, 
   getPeriodKey, 
   inferDateFromKey, 
-  sameDay 
+  sameDay,
+  habitVisibleOnDate
 } from "../../utils";
 import { 
   DEFAULT_CATEGORIES
@@ -94,18 +95,7 @@ export function useHabitManagement() {
     return streak;
   }, [habits]);
 
-  // Visibility helper
-  function habitVisibleOnDate(h: Habit, d: Date): boolean {
-    if (h.isRecurring) return true;
-    if (!h.specificDate) return true;
-    const sd = new Date(h.specificDate);
-    if (h.frequency === "daily") return sameDay(sd, d);
-    if (h.frequency === "weekly") return getPeriodKey("weekly", sd) === getPeriodKey("weekly", d);
-    if (h.frequency === "monthly")
-      return sd.getFullYear() === d.getFullYear() && sd.getMonth() === d.getMonth();
-    if (h.frequency === "yearly") return sd.getFullYear() === d.getFullYear();
-    return true;
-  }
+  // Visibility helper is now imported from utils
 
   // Toggle completion for the habit in the current period
   function toggleComplete(habitId: string, selectedDate: Date): void {

@@ -1,219 +1,184 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Icon } from '../ui/Icon';
-import { useAppStore } from '../../store/appStore';
-import type { Reward } from '../../types';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { classNames } from "../../utils";
+import { featureIcons } from "../../utils/icons";
+import { useSoundEffectsOnly } from "../../hooks/useSoundEffects";
 
-interface AddRewardModalProps {
-  isOpen: boolean;
+export function AddRewardModal({
+  onClose,
+  onSave,
+}: {
   onClose: () => void;
-}
+  onSave: (p: { name: string; cost: number }) => void;
+}) {
+  const [name, setName] = useState("");
+  const [cost, setCost] = useState<number>(100);
+  const { playButtonClick } = useSoundEffectsOnly();
 
-export function AddRewardModal({ isOpen, onClose }: AddRewardModalProps) {
-  const addReward = useAppStore(state => state.addReward);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    pointsCost: 100,
-    category: 'entertainment',
-    isAvailable: true
-  });
-
-  const [selectedIcon, setSelectedIcon] = useState('Gift');
-
-  const rewardIcons = [
-    'Gift', 'Trophy', 'Star', 'Crown', 'Diamond', 'Heart',
-    'Coffee', 'Music', 'GameController2', 'Camera',
-    'Book', 'Headphones', 'Pizza', 'IceCream'
-  ];
-
-  const rewardCategories = [
-    'entertainment',
-    'food',
-    'shopping',
-    'experience',
-    'digital',
-    'other'
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    
-    if (!formData.name.trim()) return;
-
-    const newReward: Reward = {
-      id: Date.now().toString(),
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      cost: formData.pointsCost,
-      icon: selectedIcon,
-      rarity: 'common'
-    };
-
-    addReward(newReward);
-    handleClose();
-  };
-
-  const handleClose = () => {
-    setFormData({
-      name: '',
-      description: '',
-      pointsCost: 100,
-      category: 'entertainment',
-      isAvailable: true
-    });
-    setSelectedIcon('Gift');
-    onClose();
-  };
+    if (!name.trim()) return;
+    playButtonClick();
+    onSave({ name, cost: Math.max(1, Number(cost || 1)) });
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Reward">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Reward Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Reward Name *
-          </label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200"
-            placeholder="e.g., Watch a movie, Buy a coffee"
-            required
-          />
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+    >
+      <motion.form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        className="
+          w-full max-w-lg
+          bg-white/95 dark:bg-neutral-900/60
+          backdrop-blur-md
+          border border-neutral-200/50 dark:border-0
+          rounded-3xl p-8 
+          shadow-xl shadow-black/10 dark:shadow-black/40
+          relative overflow-hidden
+        "
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
+          ...(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? {
+            background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.8) 100%)'
+          } : {})
+        }}
+        initial={{ y: 20, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 20, opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        {/* Amber/Orange Theme Gradient Background */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-600/8 via-orange-600/8 to-red-600/8 dark:from-amber-600/10 dark:via-orange-600/10 dark:to-red-600/10"></div>
+        
+        {/* Floating Gradient Orbs */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+          <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-amber-400/25 to-orange-600/25 dark:from-amber-400/20 dark:to-orange-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-yellow-400/25 to-amber-600/25 dark:from-yellow-400/20 dark:to-amber-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-orange-400/20 to-red-600/20 dark:from-orange-400/15 dark:to-red-600/15 rounded-full blur-2xl"></div>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200 resize-none"
-            rows={3}
-            placeholder="Optional description of the reward..."
-          />
-        </div>
-
-        {/* Points Cost */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Points Cost
-          </label>
-          <input
-            type="number"
-            min="1"
-            max="10000"
-            value={formData.pointsCost}
-            onChange={(e) => setFormData(prev => ({ ...prev, pointsCost: parseInt(e.target.value) || 1 }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200"
-          />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Category
-          </label>
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200"
-          >
-            {rewardCategories.map(category => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Icon Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Choose Icon
-          </label>
-          <div className="grid grid-cols-7 gap-2">
-            {rewardIcons.map((iconName) => (
-              <motion.button
-                key={iconName}
-                type="button"
-                onClick={() => setSelectedIcon(iconName)}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                  selectedIcon === iconName
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <motion.div
+                className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/30 dark:from-amber-500/20 dark:to-orange-500/20 backdrop-blur-sm border border-amber-200/30 dark:border-transparent"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Icon 
-                  name={iconName as any} 
-                  className={`w-6 h-6 ${
-                    selectedIcon === iconName 
-                      ? 'text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-gray-400'
-                  }`} 
+                <featureIcons.gift className="w-6 h-6 text-amber-500 dark:text-amber-400" />
+              </motion.div>
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-700 via-orange-700 to-red-700 dark:from-amber-600 dark:via-orange-600 dark:to-red-600 bg-clip-text text-transparent mb-2">
+              Create New Reward
+            </h2>
+            <p className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Set motivating incentives for your progress</p>
+          </div>
+
+          {/* Form Content */}
+          <div className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30">
+            <div className="space-y-5">
+              {/* Reward Name Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Reward Name
+                </label>
+                <input
+                  className="
+                    w-full rounded-xl px-4 py-3 text-sm
+                    bg-white/80 dark:bg-neutral-800/50
+                    border border-neutral-300/50 dark:border-neutral-600/30
+                    text-neutral-900 dark:text-neutral-100
+                    placeholder-neutral-500 dark:placeholder-neutral-400
+                    focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50
+                    backdrop-blur-sm transition-all duration-200
+                  "
+                  placeholder="e.g., Friday movie night"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
-              </motion.button>
-            ))}
+              </div>
+
+              {/* Cost Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Cost (Points)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  className="
+                    w-full rounded-xl px-4 py-3 text-sm
+                    bg-white/80 dark:bg-neutral-800/50
+                    border border-neutral-300/50 dark:border-neutral-600/30
+                    text-neutral-900 dark:text-neutral-100
+                    placeholder-neutral-500 dark:placeholder-neutral-400
+                    focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50
+                    backdrop-blur-sm transition-all duration-200
+                  "
+                  value={cost}
+                  onChange={(e) => setCost(Number(e.target.value || 0))}
+                />
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Points required to redeem this reward</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 mt-6">
+            <motion.button
+              type="button"
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+              className="
+                px-6 py-3 rounded-2xl font-medium text-sm
+                bg-white/80 dark:bg-neutral-800/50
+                text-neutral-700 dark:text-neutral-300
+                border border-neutral-300/50 dark:border-neutral-600/30
+                hover:bg-neutral-100/80 dark:hover:bg-neutral-700/50
+                backdrop-blur-sm transition-all duration-200
+              "
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              type="submit"
+              className="
+                relative overflow-hidden px-6 py-3 rounded-2xl font-medium text-sm
+                bg-gradient-to-r from-amber-600 to-orange-600
+                text-white border-0
+                shadow-lg shadow-amber-500/25
+                transition-all duration-300
+              "
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 10px 25px -5px rgba(245, 158, 11, 0.4)"
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 opacity-95"></div>
+              <div className="relative z-10 flex items-center gap-2">
+                <featureIcons.gift className="w-4 h-4" />
+                Create Reward
+              </div>
+            </motion.button>
           </div>
         </div>
-
-        {/* Available Toggle */}
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="isAvailable"
-            checked={formData.isAvailable}
-            onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.checked }))}
-            className="w-5 h-5 text-blue-600 border-gray-300 rounded 
-                     focus:ring-blue-500 focus:ring-2"
-          />
-          <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Make reward available immediately
-          </label>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            className="flex-1"
-            disabled={!formData.name.trim()}
-          >
-            <Icon name="Plus" className="w-5 h-5 mr-2" />
-            Add Reward
-          </Button>
-        </div>
-      </form>
-    </Modal>
+      </motion.form>
+    </motion.div>
   );
 }

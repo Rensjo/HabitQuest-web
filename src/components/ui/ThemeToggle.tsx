@@ -2,9 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme';
 import { featureIcons } from '../../utils/icons';
+import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 
 export const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
+  const { playButtonClick, playHover } = useSoundEffectsOnly();
 
   const SunIcon = featureIcons.sun;
   const MoonIcon = featureIcons.moon;
@@ -76,7 +78,10 @@ export const ThemeToggle: React.FC = () => {
           <motion.button
             key={key}
             type="button"
-            onClick={() => setTheme(key)}
+            onClick={() => {
+              setTheme(key);
+              playButtonClick();
+            }}
             aria-pressed={active}
             title={`Switch to ${label} theme`}
             className={[
@@ -94,6 +99,7 @@ export const ThemeToggle: React.FC = () => {
                 : "0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05)",
               transition: { duration: 0.1 }
             }}
+            onMouseEnter={() => playHover()}
             whileTap={{ scale: 0.92 }}
             initial={{ opacity: 0, scale: 0.9, y: 10 }}
             animate={active ? { 

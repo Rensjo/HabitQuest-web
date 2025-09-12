@@ -1,223 +1,187 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Icon } from '../ui/Icon';
-import { useAppStore } from '../../store/appStore';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { classNames } from "../../utils";
+import { featureIcons } from "../../utils/icons";
+import { useSoundEffectsOnly } from "../../hooks/useSoundEffects";
 
-interface AddCategoryModalProps {
-  isOpen: boolean;
+export function AddCategoryModal({
+  onClose,
+  onSave,
+}: {
   onClose: () => void;
-}
+  onSave: (p: { name: string; target: number }) => void;
+}) {
+  const [name, setName] = useState("");
+  const [target, setTarget] = useState<number>(200);
+  const { playButtonClick } = useSoundEffectsOnly();
 
-export function AddCategoryModal({ isOpen, onClose }: AddCategoryModalProps) {
-  const addCategory = useAppStore(state => state.addCategory);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    color: '#3B82F6',
-    description: ''
-  });
-
-  const [selectedIcon, setSelectedIcon] = useState('Folder');
-
-  const categoryIcons = [
-    'Folder', 'Tag', 'BookOpen', 'Dumbbell', 'Heart', 'Brain',
-    'Target', 'Zap', 'Leaf', 'Sun', 'Moon', 'Star',
-    'Coffee', 'Home', 'Briefcase', 'Music', 'Camera', 'Palette'
-  ];
-
-  const presetColors = [
-    '#3B82F6', // Blue
-    '#10B981', // Green
-    '#F59E0B', // Amber
-    '#EF4444', // Red
-    '#8B5CF6', // Purple
-    '#06B6D4', // Cyan
-    '#F97316', // Orange
-    '#84CC16', // Lime
-    '#EC4899', // Pink
-    '#6B7280', // Gray
-    '#14B8A6', // Teal
-    '#F43F5E'  // Rose
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  function submit(e: React.FormEvent) {
     e.preventDefault();
-    
-    if (!formData.name.trim()) return;
-
-    addCategory(formData.name.trim(), 1000); // Default target XP
-    handleClose();
-  };
-
-  const handleClose = () => {
-    setFormData({
-      name: '',
-      color: '#3B82F6',
-      description: ''
-    });
-    setSelectedIcon('Folder');
-    onClose();
-  };
+    if (!name.trim()) return;
+    playButtonClick();
+    onSave({ name, target });
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add New Category">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Category Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Category Name *
-          </label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200"
-            placeholder="e.g., Work, Health, Learning"
-            required
-          />
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+    >
+      <motion.form
+        onSubmit={submit}
+        onClick={(e) => e.stopPropagation()}
+        className="
+          w-full max-w-lg
+          bg-white/95 dark:bg-neutral-900/60
+          backdrop-blur-md
+          border border-neutral-200/50 dark:border-0
+          rounded-3xl p-8 
+          shadow-xl shadow-black/10 dark:shadow-black/40
+          relative overflow-hidden
+        "
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
+          ...(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? {
+            background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.8) 100%)'
+          } : {})
+        }}
+        initial={{ y: 20, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 20, opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        {/* Emerald/Cyan Theme Gradient Background */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-600/8 via-cyan-600/8 to-teal-600/8 dark:from-emerald-600/10 dark:via-cyan-600/10 dark:to-teal-600/10"></div>
+        
+        {/* Floating Gradient Orbs */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+          <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br from-emerald-400/25 to-cyan-600/25 dark:from-emerald-400/20 dark:to-cyan-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-cyan-400/25 to-teal-600/25 dark:from-cyan-400/20 dark:to-teal-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-br from-green-400/20 to-emerald-600/20 dark:from-green-400/15 dark:to-emerald-600/15 rounded-full blur-2xl"></div>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl 
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     transition-all duration-200 resize-none"
-            rows={3}
-            placeholder="Optional description of this category..."
-          />
-        </div>
-
-        {/* Icon Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Choose Icon
-          </label>
-          <div className="grid grid-cols-6 gap-2">
-            {categoryIcons.map((iconName) => (
-              <motion.button
-                key={iconName}
-                type="button"
-                onClick={() => setSelectedIcon(iconName)}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                  selectedIcon === iconName
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <motion.div
+                className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 dark:from-emerald-500/20 dark:to-cyan-500/20 backdrop-blur-sm border border-emerald-200/30 dark:border-transparent"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Icon 
-                  name={iconName as any} 
-                  className={`w-6 h-6 ${
-                    selectedIcon === iconName 
-                      ? 'text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-gray-400'
-                  }`} 
+                <featureIcons.target className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
+              </motion.div>
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 via-cyan-700 to-teal-700 dark:from-emerald-600 dark:via-cyan-600 dark:to-teal-600 bg-clip-text text-transparent mb-2">
+              Create New Category
+            </h2>
+            <p className="text-neutral-700 dark:text-neutral-400 text-sm font-medium">Organize your habits by life areas</p>
+          </div>
+
+          {/* Form Content */}
+          <div className="bg-white/60 dark:bg-neutral-800/30 backdrop-blur-sm rounded-2xl p-6 border border-neutral-200/30 dark:border-0 ring-1 ring-neutral-200/20 dark:ring-neutral-700/30">
+            <div className="space-y-5">
+              {/* Category Name Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Category Name
+                </label>
+                <input
+                  className="
+                    w-full rounded-xl px-4 py-3 text-sm uppercase
+                    bg-white/80 dark:bg-neutral-800/50
+                    border border-neutral-300/50 dark:border-neutral-600/30
+                    text-neutral-900 dark:text-neutral-100
+                    placeholder-neutral-500 dark:placeholder-neutral-400
+                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
+                    backdrop-blur-sm transition-all duration-200
+                  "
+                  placeholder="e.g., HEALTH"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* Color Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Choose Color
-          </label>
-          <div className="flex flex-wrap gap-3">
-            {presetColors.map((color) => (
-              <motion.button
-                key={color}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, color }))}
-                className={`w-10 h-10 rounded-full border-2 transition-all duration-200 ${
-                  formData.color === color
-                    ? 'border-gray-800 dark:border-white scale-110'
-                    : 'border-gray-300 dark:border-gray-600 hover:scale-105'
-                }`}
-                style={{ backgroundColor: color }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              />
-            ))}
-          </div>
-          
-          {/* Custom Color Input */}
-          <div className="mt-4">
-            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Or choose a custom color:
-            </label>
-            <input
-              type="color"
-              value={formData.color}
-              onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-              className="w-20 h-10 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer"
-            />
-          </div>
-        </div>
-
-        {/* Preview */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Preview
-          </label>
-          <div className="flex items-center space-x-3">
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: formData.color + '20', borderColor: formData.color }}
-            >
-              <Icon 
-                name={selectedIcon as any} 
-                className="w-6 h-6"
-                color={formData.color}
-              />
-            </div>
-            <div>
-              <div className="font-medium text-gray-900 dark:text-white">
-                {formData.name || 'Category Name'}
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                  Names are automatically stored in uppercase for consistency
+                </p>
               </div>
-              {formData.description && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {formData.description}
-                </div>
-              )}
+
+              {/* Monthly Target Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Monthly XP Target
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  className="
+                    w-full rounded-xl px-4 py-3 text-sm
+                    bg-white/80 dark:bg-neutral-800/50
+                    border border-neutral-300/50 dark:border-neutral-600/30
+                    text-neutral-900 dark:text-neutral-100
+                    placeholder-neutral-500 dark:placeholder-neutral-400
+                    focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50
+                    backdrop-blur-sm transition-all duration-200
+                  "
+                  value={target}
+                  onChange={(e) => setTarget(Number(e.target.value || 0))}
+                />
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">XP goal for this category each month</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 pt-4">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            className="flex-1"
-            disabled={!formData.name.trim()}
-          >
-            <Icon name="Plus" className="w-5 h-5 mr-2" />
-            Add Category
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 mt-6">
+            <motion.button
+              type="button"
+              onClick={() => {
+        onClose();
+        playButtonClick();
+      }}
+              className="
+                px-6 py-3 rounded-2xl font-medium text-sm
+                bg-white/80 dark:bg-neutral-800/50
+                text-neutral-700 dark:text-neutral-300
+                border border-neutral-300/50 dark:border-neutral-600/30
+                hover:bg-neutral-100/80 dark:hover:bg-neutral-700/50
+                backdrop-blur-sm transition-all duration-200
+              "
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              type="submit"
+              className="
+                relative overflow-hidden px-6 py-3 rounded-2xl font-medium text-sm
+                bg-gradient-to-r from-emerald-600 to-cyan-600
+                text-white border-0
+                shadow-lg shadow-emerald-500/25
+                transition-all duration-300
+              "
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.4)"
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-600 to-teal-600 opacity-95"></div>
+              <div className="relative z-10 flex items-center gap-2">
+                <featureIcons.target className="w-4 h-4" />
+                Create Category
+              </div>
+            </motion.button>
+          </div>
         </div>
-      </form>
-    </Modal>
+      </motion.form>
+    </motion.div>
   );
 }

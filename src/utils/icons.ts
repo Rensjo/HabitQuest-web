@@ -48,6 +48,7 @@ import {
   XCircle,
   HelpCircle,
   Shield,
+  Minimize2,
   Map,
   Compass,
   Lock,
@@ -61,7 +62,13 @@ import {
   CalendarDays,
   CalendarRange,
   CalendarClock,
-  Sunrise
+  Sunrise,
+  Volume2,
+  Volume1,
+  Music,
+  Palette,
+  Bell,
+  Database
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -149,9 +156,22 @@ export const featureIcons = {
   calendarRange: CalendarRange,
   calendarClock: CalendarClock,
   checkCircle: CheckCircle,
+  check: CheckCircle2,
   plus: Plus,
   x: X,
   chevronUp: ChevronUp,
+  volume2: Volume2,
+  volume1: Volume1,
+  music: Music,
+  palette: Palette,
+  bell: Bell,
+  database: Database,
+  chevronRight: ChevronRight,
+  trash2: Trash2,
+  download: Download,
+  upload: Upload,
+  settings: Settings,
+  minimize: Minimize2,
 };
 
 // Frequency icons
