@@ -97,7 +97,7 @@ jobs:
         find src-tauri/target -name "HabitQuest.app" -type d
         echo ""
         echo "Looking for binary files:"
-        find src-tauri/target -name "HabitQuest" -type f
+        find src-tauri/target -name "app" -type f
         echo ""
         echo "Checking contents of Intel app bundle:"
         ls -la src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
@@ -105,26 +105,26 @@ jobs:
         echo "Checking contents of Apple Silicon app bundle:"
         ls -la src-tauri/target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
         
-        # Find the actual binary paths - use more flexible pattern
-        INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
-        SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/HabitQuest" -type f | head -1)
+        # Find the actual binary paths - Tauri uses 'app' as the binary name
+        INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/app" -type f | head -1)
+        SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/app" -type f | head -1)
         
         # If not found with specific pattern, try broader search
         if [ -z "$INTEL_BINARY" ]; then
-          INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -name "HabitQuest" -type f | head -1)
+          INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -name "app" -type f | head -1)
         fi
         
         if [ -z "$SILICON_BINARY" ]; then
-          SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -name "HabitQuest" -type f | head -1)
+          SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -name "app" -type f | head -1)
         fi
         
         # If still not found, try even broader search
         if [ -z "$INTEL_BINARY" ]; then
-          INTEL_BINARY=$(find src-tauri/target -name "HabitQuest" -type f | grep x86_64 | head -1)
+          INTEL_BINARY=$(find src-tauri/target -name "app" -type f | grep x86_64 | head -1)
         fi
         
         if [ -z "$SILICON_BINARY" ]; then
-          SILICON_BINARY=$(find src-tauri/target -name "HabitQuest" -type f | grep aarch64 | head -1)
+          SILICON_BINARY=$(find src-tauri/target -name "app" -type f | grep aarch64 | head -1)
         fi
         
         echo "Intel binary: $INTEL_BINARY"
@@ -134,29 +134,29 @@ jobs:
         if [ ! -f "$INTEL_BINARY" ]; then
           echo "Error: Intel binary not found at $INTEL_BINARY"
           echo "Available Intel files:"
-          find src-tauri/target -path "*x86_64*" -name "*HabitQuest*" -type f
+          find src-tauri/target -path "*x86_64*" -name "*app*" -type f
           exit 1
         fi
         
         if [ ! -f "$SILICON_BINARY" ]; then
           echo "Error: Apple Silicon binary not found at $SILICON_BINARY"
           echo "Available Apple Silicon files:"
-          find src-tauri/target -path "*aarch64*" -name "*HabitQuest*" -type f
+          find src-tauri/target -path "*aarch64*" -name "*app*" -type f
           exit 1
         fi
         
         # Create universal binary directory
         mkdir -p src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS
         
-        # Create universal binary
-        lipo -create -output src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+        # Create universal binary (Tauri uses 'app' as the binary name)
+        lipo -create -output src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app \
           "$INTEL_BINARY" \
           "$SILICON_BINARY"
         
         # Copy the Intel app bundle as base and replace the binary
         cp -r src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app src-tauri/target/universal-apple-darwin/release/bundle/macos/
-        cp src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
-           src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
+        cp src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app \
+           src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app
         
         echo "Universal binary created successfully"
           
