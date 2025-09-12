@@ -58,19 +58,36 @@ jobs:
     - name: Build Tauri app (Intel)
       run: |
         echo "Building Intel version..."
-        npm run tauri:build:macos-intel
-        echo "Intel build completed"
+        if ! npm run tauri:build:macos-intel; then
+          echo "Error: Intel build failed"
+          exit 1
+        fi
+        echo "Intel build completed successfully"
         
     - name: Build Tauri app (Apple Silicon)
       run: |
         echo "Building Apple Silicon version..."
-        npm run tauri:build:macos-silicon
-        echo "Apple Silicon build completed"
+        if ! npm run tauri:build:macos-silicon; then
+          echo "Error: Apple Silicon build failed"
+          exit 1
+        fi
+        echo "Apple Silicon build completed successfully"
         
     - name: Verify builds and create universal binary
       run: |
         # Check if builds succeeded and find the correct paths
         echo "Checking build outputs..."
+        
+        # Check if target directory exists
+        if [ ! -d "target" ]; then
+          echo "Error: target directory does not exist. Tauri builds may have failed."
+          echo "Checking for any build artifacts..."
+          find . -name "*.app" -type d 2>/dev/null || echo "No .app directories found"
+          find . -name "HabitQuest*" -type f 2>/dev/null || echo "No HabitQuest files found"
+          exit 1
+        fi
+        
+        echo "Target directory exists. Checking contents..."
         echo "Full target directory structure:"
         find target -type f -name "HabitQuest*" | head -20
         echo ""
@@ -115,13 +132,27 @@ jobs:
           
     - name: Create DMG
       run: |
-        # Install create-dmg
+        # Install create-dmg and required dependencies
         brew install create-dmg
+        
+        # Verify the universal app exists
+        if [ ! -d "target/universal-apple-darwin/release/bundle/macos/HabitQuest.app" ]; then
+          echo "Error: Universal app not found. Cannot create DMG."
+          exit 1
+        fi
+        
+        # Verify icon exists
+        if [ ! -f "src-tauri/icons/icon.icns" ]; then
+          echo "Warning: icon.icns not found, using default icon"
+          ICON_ARG=""
+        else
+          ICON_ARG="--volicon src-tauri/icons/icon.icns"
+        fi
         
         # Create DMG
         create-dmg \
           --volname "HabitQuest v3.2.0.1" \
-          --volicon "src-tauri/icons/icon.icns" \
+          $ICON_ARG \
           --window-pos 200 120 \
           --window-size 600 300 \
           --icon-size 100 \
@@ -133,6 +164,8 @@ jobs:
           
     - name: Create package folders
       run: |
+        echo "Creating package folders..."
+        
         # Create universal package folder
         mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal
         
@@ -142,18 +175,49 @@ jobs:
         # Create Apple Silicon-specific package folder
         mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon
         
-        # Copy DMG to universal package
-        cp HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+        # Verify DMG exists before copying
+        if [ -f "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" ]; then
+          cp HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+          echo "DMG copied to universal package"
+        else
+          echo "Warning: DMG not found, skipping DMG copy"
+        fi
+        
+        # Find and copy individual architecture builds
+        INTEL_APP=$(find target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -type d | head -1)
+        SILICON_APP=$(find target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -type d | head -1)
+        UNIVERSAL_APP="target/universal-apple-darwin/release/bundle/macos/HabitQuest.app"
+        
+        echo "Intel app: $INTEL_APP"
+        echo "Silicon app: $SILICON_APP"
+        echo "Universal app: $UNIVERSAL_APP"
         
         # Copy individual architecture builds to universal package
-        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-Intel.app
-        cp -r target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-AppleSilicon.app
+        if [ -d "$INTEL_APP" ]; then
+          cp -r "$INTEL_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-Intel.app
+          echo "Intel app copied to universal package"
+        else
+          echo "Warning: Intel app not found"
+        fi
+        
+        if [ -d "$SILICON_APP" ]; then
+          cp -r "$SILICON_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-AppleSilicon.app
+          echo "Silicon app copied to universal package"
+        else
+          echo "Warning: Apple Silicon app not found"
+        fi
         
         # Copy Intel build to Intel package
-        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/HabitQuest.app
+        if [ -d "$INTEL_APP" ]; then
+          cp -r "$INTEL_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/HabitQuest.app
+          echo "Intel app copied to Intel package"
+        fi
         
         # Copy Apple Silicon build to Apple Silicon package
-        cp -r target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/HabitQuest.app
+        if [ -d "$SILICON_APP" ]; then
+          cp -r "$SILICON_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/HabitQuest.app
+          echo "Silicon app copied to Apple Silicon package"
+        fi
         
         # Copy documentation to all packages
         for dir in HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*; do
@@ -269,6 +333,21 @@ jobs:
         ---
         **HabitQuest v3.2.0.1 - Apple Silicon Mac Version** 🚀
         EOF
+        
+    - name: Verify final packages
+      run: |
+        echo "Verifying final packages..."
+        echo "Package directories:"
+        ls -la HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*
+        echo ""
+        echo "DMG file:"
+        ls -la *.dmg 2>/dev/null || echo "No DMG files found"
+        echo ""
+        echo "Package contents:"
+        for dir in HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*; do
+          echo "Contents of $dir:"
+          ls -la "$dir" || echo "Directory not found"
+        done
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
