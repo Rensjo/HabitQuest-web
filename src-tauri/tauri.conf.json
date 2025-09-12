@@ -48,11 +48,12 @@
     "longDescription": "HabitQuest is a powerful habit tracking application that gamifies your daily routines and helps you build lasting positive habits through XP, rewards, and progress tracking.",
     "macOS": {
       "frameworks": [],
-      "minimumSystemVersion": "10.13",
+      "minimumSystemVersion": "10.15",
       "exceptionDomain": "",
       "signingIdentity": null,
       "providerShortName": null,
-      "entitlements": null
+      "entitlements": null,
+      "bundleVersion": "3.2.0.1"
     },
     "windows": {
       "certificateThumbprint": null,

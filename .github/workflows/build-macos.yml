@@ -1,0 +1,181 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build frontend
+      run: npm run build
+      
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-apple-darwin,aarch64-apple-darwin
+        
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+          
+    - name: Install Tauri CLI
+      run: npm install -g @tauri-apps/cli@latest
+      
+    - name: Build Tauri app (Intel)
+      run: npm run tauri build -- --target x86_64-apple-darwin
+        
+    - name: Build Tauri app (Apple Silicon)
+      run: npm run tauri build -- --target aarch64-apple-darwin
+        
+    - name: Create universal binary
+      run: |
+        # Create universal binary for both architectures
+        lipo -create -output target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+          target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest \
+          target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/HabitQuest
+          
+    - name: Create DMG
+      run: |
+        # Install create-dmg
+        brew install create-dmg
+        
+        # Create DMG
+        create-dmg \
+          --volname "HabitQuest v3.2.0.1" \
+          --volicon "src-tauri/icons/icon.icns" \
+          --window-pos 200 120 \
+          --window-size 600 300 \
+          --icon-size 100 \
+          --icon "HabitQuest.app" 175 120 \
+          --hide-extension "HabitQuest.app" \
+          --app-drop-link 425 120 \
+          "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" \
+          "target/universal-apple-darwin/release/bundle/macos/"
+          
+    - name: Create package folder
+      run: |
+        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal
+        
+        # Copy DMG
+        cp HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+        
+        # Copy individual architecture builds
+        cp -r target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-Intel.app
+        cp -r target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-AppleSilicon.app
+        
+        # Copy documentation
+        cp README.md HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+        cp LICENSE.txt HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/ 2>/dev/null || echo "LICENSE.txt not found"
+        
+        # Create macOS-specific README
+        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/README-macOS.md << 'EOF'
+        # HabitQuest v3.2.0.1 - macOS Universal Binary
+        
+        ## 🍎 **macOS Installation Guide**
+        
+        ### **System Requirements**
+        - macOS 10.15 (Catalina) or later
+        - Intel x64 or Apple Silicon (M1/M2) processor
+        - 100MB available storage
+        
+        ### **Installation Methods**
+        
+        #### **Method 1: DMG Installer (Recommended)**
+        1. Download `HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg`
+        2. Double-click to mount the DMG
+        3. Drag HabitQuest.app to your Applications folder
+        4. Eject the DMG
+        5. Launch HabitQuest from Applications or Launchpad
+        
+        #### **Method 2: Direct App Installation**
+        - **Intel Macs**: Use `HabitQuest-Intel.app`
+        - **Apple Silicon Macs**: Use `HabitQuest-AppleSilicon.app`
+        - **Universal Binary**: Use `HabitQuest.app` (works on both architectures)
+        
+        ### **First Launch**
+        - Right-click the app and select "Open" if you get a security warning
+        - Go to System Preferences > Security & Privacy > General
+        - Click "Open Anyway" if the app is blocked
+        
+        ### **Troubleshooting**
+        - If the app won't open, try right-clicking and selecting "Open"
+        - For security warnings, go to System Preferences > Security & Privacy
+        - Make sure you're running macOS 10.15 or later
+        
+        ### **Features**
+        - Universal binary (Intel + Apple Silicon)
+        - Native macOS integration
+        - Dark mode support
+        - Full-screen support
+        - Native menu bar integration
+        
+        ---
+        **HabitQuest v3.2.0.1 - Transform your life, one habit at a time!** 🚀
+        EOF
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: habitquest-macos-v3.2.0.1
+        path: |
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
+        retention-days: 30
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v3.2.0.1-macos
+        name: HabitQuest v3.2.0.1 - macOS Universal
+        body: |
+          ## 🍎 HabitQuest v3.2.0.1 - macOS Universal Binary
+          
+          ### What's New
+          - Fixed SettingsModal TypeError and theme system issues
+          - Universal binary for Intel and Apple Silicon Macs
+          - Native macOS integration
+          - Dark mode support
+          
+          ### Installation
+          Download the DMG file and drag HabitQuest.app to your Applications folder.
+          
+          ### System Requirements
+          - macOS 10.15 (Catalina) or later
+          - Intel x64 or Apple Silicon (M1/M2) processor
+          
+          **Note**: This build does not require Apple Developer notarization.
+        files: |
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
+          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,7 +11,10 @@
     "test:performance": "node scripts/performance-test.js",
     "optimize": "npm run test:performance && npm run build",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:build:macos": "tauri build --target x86_64-apple-darwin,aarch64-apple-darwin",
+    "tauri:build:macos-intel": "tauri build --target x86_64-apple-darwin",
+    "tauri:build:macos-silicon": "tauri build --target aarch64-apple-darwin"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
