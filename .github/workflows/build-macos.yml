@@ -1,424 +1,51 @@
-name: Build macOS App
+name: macOS DMG (ad-hoc)
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
 
 jobs:
-  build-macos:
+  macos:
     runs-on: macos-latest
-    
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Clean install
-      run: |
-        rm -rf node_modules package-lock.json
-        npm cache clean --force
-        
-    - name: Install dependencies
-      run: |
-        npm install --legacy-peer-deps
-        npm audit fix --legacy-peer-deps || true
-      
-    - name: Build frontend
-      run: npm run build
-      
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: x86_64-apple-darwin,aarch64-apple-darwin
-        
-    - name: Cache Rust dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
-          
-    - name: Install Tauri CLI
-      run: npm install -g @tauri-apps/cli@latest
-      
-    - name: Build Tauri app (Intel)
-      run: |
-        echo "Building Intel version..."
-        if ! npm run tauri:build:macos-intel; then
-          echo "Error: Intel build failed"
-          exit 1
-        fi
-        echo "Intel build completed successfully"
-        
-    - name: Build Tauri app (Apple Silicon)
-      run: |
-        echo "Building Apple Silicon version..."
-        if ! npm run tauri:build:macos-silicon; then
-          echo "Error: Apple Silicon build failed"
-          exit 1
-        fi
-        echo "Apple Silicon build completed successfully"
-        
-    - name: Verify builds and create universal binary
-      run: |
-        # Check if builds succeeded and find the correct paths
-        echo "Checking build outputs..."
-        
-        # Check if target directory exists (Tauri builds to src-tauri/target)
-        if [ ! -d "src-tauri/target" ]; then
-          echo "Error: src-tauri/target directory does not exist. Tauri builds may have failed."
-          echo "Checking for any build artifacts..."
-          find . -name "*.app" -type d 2>/dev/null || echo "No .app directories found"
-          find . -name "HabitQuest*" -type f 2>/dev/null || echo "No HabitQuest files found"
-          exit 1
-        fi
-        
-        echo "Found Tauri target directory at src-tauri/target"
-        
-        echo "Target directory exists. Checking contents..."
-        echo "Full target directory structure:"
-        find src-tauri/target -type f -name "HabitQuest*" | head -20
-        echo ""
-        echo "Looking for .app directories:"
-        find src-tauri/target -name "HabitQuest.app" -type d
-        echo ""
-        echo "Looking for binary files:"
-        find src-tauri/target -name "app" -type f
-        echo ""
-        echo "Checking contents of Intel app bundle:"
-        ls -la src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
-        echo ""
-        echo "Checking contents of Apple Silicon app bundle:"
-        ls -la src-tauri/target/aarch64-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/ 2>/dev/null || echo "MacOS directory not found"
-        
-        # Find the actual binary paths - Tauri uses 'app' as the binary name
-        INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app/Contents/MacOS/app" -type f | head -1)
-        SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app/Contents/MacOS/app" -type f | head -1)
-        
-        # If not found with specific pattern, try broader search
-        if [ -z "$INTEL_BINARY" ]; then
-          INTEL_BINARY=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -name "app" -type f | head -1)
-        fi
-        
-        if [ -z "$SILICON_BINARY" ]; then
-          SILICON_BINARY=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -name "app" -type f | head -1)
-        fi
-        
-        # If still not found, try even broader search
-        if [ -z "$INTEL_BINARY" ]; then
-          INTEL_BINARY=$(find src-tauri/target -name "app" -type f | grep x86_64 | head -1)
-        fi
-        
-        if [ -z "$SILICON_BINARY" ]; then
-          SILICON_BINARY=$(find src-tauri/target -name "app" -type f | grep aarch64 | head -1)
-        fi
-        
-        echo "Intel binary: $INTEL_BINARY"
-        echo "Silicon binary: $SILICON_BINARY"
-        
-        # Verify both binaries exist
-        if [ ! -f "$INTEL_BINARY" ]; then
-          echo "Error: Intel binary not found at $INTEL_BINARY"
-          echo "Available Intel files:"
-          find src-tauri/target -path "*x86_64*" -name "*app*" -type f
-          exit 1
-        fi
-        
-        if [ ! -f "$SILICON_BINARY" ]; then
-          echo "Error: Apple Silicon binary not found at $SILICON_BINARY"
-          echo "Available Apple Silicon files:"
-          find src-tauri/target -path "*aarch64*" -name "*app*" -type f
-          exit 1
-        fi
-        
-        # Create universal binary directory
-        mkdir -p src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS
-        
-        # Create universal binary (Tauri uses 'app' as the binary name)
-        lipo -create -output src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app \
-          "$INTEL_BINARY" \
-          "$SILICON_BINARY"
-        
-        # Copy the Intel app bundle as base and replace the binary
-        cp -r src-tauri/target/x86_64-apple-darwin/release/bundle/macos/HabitQuest.app src-tauri/target/universal-apple-darwin/release/bundle/macos/
-        cp src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app \
-           src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app/Contents/MacOS/app
-        
-        echo "Universal binary created successfully"
-          
-    - name: Create DMG
-      run: |
-        # Install create-dmg and required dependencies
-        brew install create-dmg
-        
-        # Verify the universal app exists
-        if [ ! -d "src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app" ]; then
-          echo "Error: Universal app not found. Cannot create DMG."
-          exit 1
-        fi
-        
-        # Verify icon exists
-        if [ ! -f "src-tauri/icons/icon.icns" ]; then
-          echo "Warning: icon.icns not found, using default icon"
-          ICON_ARG=""
-        else
-          ICON_ARG="--volicon src-tauri/icons/icon.icns"
-        fi
-        
-        # Create DMG
-        create-dmg \
-          --volname "HabitQuest v3.2.0.1" \
-          $ICON_ARG \
-          --window-pos 200 120 \
-          --window-size 600 300 \
-          --icon-size 100 \
-          --icon "HabitQuest.app" 175 120 \
-          --hide-extension "HabitQuest.app" \
-          --app-drop-link 425 120 \
-          "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" \
-          "src-tauri/target/universal-apple-darwin/release/bundle/macos/"
-          
-    - name: Create package folders
-      run: |
-        echo "Creating package folders..."
-        
-        # Create universal package folder
-        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal
-        
-        # Create Intel-specific package folder
-        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel
-        
-        # Create Apple Silicon-specific package folder
-        mkdir -p HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon
-        
-        # Verify DMG exists before copying
-        if [ -f "HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg" ]; then
-          cp HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
-          echo "DMG copied to universal package"
-        else
-          echo "Warning: DMG not found, skipping DMG copy"
-        fi
-        
-        # Find and copy individual architecture builds
-        INTEL_APP=$(find src-tauri/target -path "*/x86_64-apple-darwin/*/HabitQuest.app" -type d | head -1)
-        SILICON_APP=$(find src-tauri/target -path "*/aarch64-apple-darwin/*/HabitQuest.app" -type d | head -1)
-        UNIVERSAL_APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/HabitQuest.app"
-        
-        echo "Intel app: $INTEL_APP"
-        echo "Silicon app: $SILICON_APP"
-        echo "Universal app: $UNIVERSAL_APP"
-        
-        # Copy individual architecture builds to universal package
-        if [ -d "$INTEL_APP" ]; then
-          cp -r "$INTEL_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-Intel.app
-          echo "Intel app copied to universal package"
-        else
-          echo "Warning: Intel app not found"
-        fi
-        
-        if [ -d "$SILICON_APP" ]; then
-          cp -r "$SILICON_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/HabitQuest-AppleSilicon.app
-          echo "Silicon app copied to universal package"
-        else
-          echo "Warning: Apple Silicon app not found"
-        fi
-        
-        # Copy Intel build to Intel package
-        if [ -d "$INTEL_APP" ]; then
-          cp -r "$INTEL_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/HabitQuest.app
-          echo "Intel app copied to Intel package"
-        fi
-        
-        # Copy Apple Silicon build to Apple Silicon package
-        if [ -d "$SILICON_APP" ]; then
-          cp -r "$SILICON_APP" HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/HabitQuest.app
-          echo "Silicon app copied to Apple Silicon package"
-        fi
-        
-        # Copy documentation to all packages
-        for dir in HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*; do
-          cp README.md "$dir/"
-          cp LICENSE.txt "$dir/" 2>/dev/null || echo "LICENSE.txt not found"
-        done
-        
-        # Create macOS-specific READMEs for each package
-        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/README-macOS.md << 'EOF'
-        # HabitQuest v3.2.0.1 - macOS Universal Binary
-        
-        ## 🍎 **macOS Installation Guide**
-        
-        ### **System Requirements**
-        - macOS 10.15 (Catalina) or later
-        - Intel x64 or Apple Silicon (M1/M2) processor
-        - 100MB available storage
-        
-        ### **Installation Methods**
-        
-        #### **Method 1: DMG Installer (Recommended)**
-        1. Download `HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg`
-        2. Double-click to mount the DMG
-        3. Drag HabitQuest.app to your Applications folder
-        4. Eject the DMG
-        5. Launch HabitQuest from Applications or Launchpad
-        
-        #### **Method 2: Direct App Installation**
-        - **Intel Macs**: Use `HabitQuest-Intel.app`
-        - **Apple Silicon Macs**: Use `HabitQuest-AppleSilicon.app`
-        - **Universal Binary**: Use `HabitQuest.app` (works on both architectures)
-        
-        ### **First Launch**
-        - Right-click the app and select "Open" if you get a security warning
-        - Go to System Preferences > Security & Privacy > General
-        - Click "Open Anyway" if the app is blocked
-        
-        ### **Troubleshooting**
-        - If the app won't open, try right-clicking and selecting "Open"
-        - For security warnings, go to System Preferences > Security & Privacy
-        - Make sure you're running macOS 10.15 or later
-        
-        ### **Features**
-        - Universal binary (Intel + Apple Silicon)
-        - Native macOS integration
-        - Dark mode support
-        - Full-screen support
-        - Native menu bar integration
-        
-        ---
-        **HabitQuest v3.2.0.1 - Transform your life, one habit at a time!** 🚀
-        EOF
-        
-        # Create Intel-specific README
-        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/README-macOS-Intel.md << 'EOF'
-        # HabitQuest v3.2.0.1 - macOS Intel (x86_64)
-        
-        ## 🍎 **macOS Intel Installation Guide**
-        
-        ### **System Requirements**
-        - macOS 10.15 (Catalina) or later
-        - Intel x64 processor (MacBook Pro, MacBook Air, iMac, Mac Pro, Mac mini)
-        - 100MB available storage
-        
-        ### **Installation**
-        1. Download this Intel-specific package
-        2. Extract the ZIP file
-        3. Drag `HabitQuest.app` to your Applications folder
-        4. Launch HabitQuest from Applications or Launchpad
-        
-        ### **First Launch**
-        - Right-click the app and select "Open" if you get a security warning
-        - Go to System Preferences > Security & Privacy > General
-        - Click "Open Anyway" if the app is blocked
-        
-        ### **Compatibility**
-        - Optimized for Intel Macs
-        - Smaller download size
-        - Better performance on Intel processors
-        
-        ---
-        **HabitQuest v3.2.0.1 - Intel Mac Version** 🚀
-        EOF
-        
-        # Create Apple Silicon-specific README
-        cat > HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/README-macOS-AppleSilicon.md << 'EOF'
-        # HabitQuest v3.2.0.1 - macOS Apple Silicon (aarch64)
-        
-        ## 🍎 **macOS Apple Silicon Installation Guide**
-        
-        ### **System Requirements**
-        - macOS 10.15 (Catalina) or later
-        - Apple Silicon processor (M1, M2, M3, M4 Macs)
-        - 100MB available storage
-        
-        ### **Installation**
-        1. Download this Apple Silicon-specific package
-        2. Extract the ZIP file
-        3. Drag `HabitQuest.app` to your Applications folder
-        4. Launch HabitQuest from Applications or Launchpad
-        
-        ### **First Launch**
-        - Right-click the app and select "Open" if you get a security warning
-        - Go to System Preferences > Security & Privacy > General
-        - Click "Open Anyway" if the app is blocked
-        
-        ### **Compatibility**
-        - Optimized for Apple Silicon Macs
-        - Native ARM64 performance
-        - Better battery life on Apple Silicon
-        - Smaller download size
-        
-        ---
-        **HabitQuest v3.2.0.1 - Apple Silicon Mac Version** 🚀
-        EOF
-        
-    - name: Verify final packages
-      run: |
-        echo "Verifying final packages..."
-        echo "Package directories:"
-        ls -la HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*
-        echo ""
-        echo "DMG file:"
-        ls -la *.dmg 2>/dev/null || echo "No DMG files found"
-        echo ""
-        echo "Package contents:"
-        for dir in HabitQuest-v3.2.0.1-RenKaiStudios-macOS-*; do
-          echo "Contents of $dir:"
-          ls -la "$dir" || echo "Directory not found"
-        done
-        
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: habitquest-macos-v3.2.0.1
-        path: |
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
-        retention-days: 30
-        
-    - name: Create Release
-      if: github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v3.2.0.1-macos
-        name: HabitQuest v3.2.0.1 - macOS Universal
-        body: |
-          ## 🍎 HabitQuest v3.2.0.1 - macOS Universal Binary
-          
-          ### What's New
-          - Fixed SettingsModal TypeError and theme system issues
-          - Universal binary for Intel and Apple Silicon Macs
-          - Native macOS integration
-          - Dark mode support
-          
-          ### Installation
-          Download the DMG file and drag HabitQuest.app to your Applications folder.
-          
-          ### System Requirements
-          - macOS 10.15 (Catalina) or later
-          - Intel x64 or Apple Silicon (M1/M2) processor
-          
-          **Note**: This build does not require Apple Developer notarization.
-        files: |
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal.dmg
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-universal/*
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-Intel/*
-          HabitQuest-v3.2.0.1-RenKaiStudios-macOS-AppleSilicon/*
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+          npm audit fix --legacy-peer-deps || true
+
+      - name: Build web (prod)
+        run: npm run build
+
+      - name: Build Tauri DMG (ad-hoc)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          APPLE_SIGNING_IDENTITY: "-"
+        with:
+          args: --target ${{ matrix.target }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-${{ matrix.target }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.tar.gz
+          retention-days: 30
