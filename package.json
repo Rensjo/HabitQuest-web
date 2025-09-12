@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "test:performance": "node scripts/performance-test.js",
     "optimize": "npm run test:performance && npm run build",
+    "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "tauri:build:macos": "tauri build --target x86_64-apple-darwin,aarch64-apple-darwin",
