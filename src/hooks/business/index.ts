@@ -105,6 +105,20 @@ export function useHabitManagement() {
         if (h.id !== habitId) return h;
         const pk = getPeriodKey(h.frequency, selectedDate);
         const already = Boolean(h.completions[pk]);
+        
+        // Prevent XP farming by checking if completion already exists for this period
+        if (already) {
+          // Only allow undo if the completion was made today (prevent farming past completions)
+          const completionDate = h.completions[pk];
+          const completionDay = new Date(completionDate).toDateString();
+          const today = new Date().toDateString();
+          
+          if (completionDay !== today) {
+            // Don't allow undoing past completions to prevent XP farming
+            return h;
+          }
+        }
+        
         const newCompletions: Record<string, string> = { ...h.completions };
         let deltaXP = 0;
         let deltaPts = 0;

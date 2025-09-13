@@ -93,7 +93,7 @@ export const RewardsShop: React.FC<RewardsShopProps> = ({
       >
         {shop.map((r, index) => (
           <motion.div
-            key={r.id}
+            key={generateInventoryKey(r, index, 'shop')}
             layout
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}

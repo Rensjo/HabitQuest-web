@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------
 // Imports
 // ---------------------------------------------------------------------
+import React, { useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Import extracted components
@@ -40,7 +41,7 @@ import { NotificationSystem } from "./components/notifications";
 // ---------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------
-export default function HabitGoalTrackerV3() {
+function HabitGoalTrackerV3() {
   // Use the extracted app state hook
   const {
     // Business data
@@ -115,12 +116,153 @@ export default function HabitGoalTrackerV3() {
   } = useAppState();
 
   // -------------------------------------------------------------------
+  // Performance Optimizations
+  // -------------------------------------------------------------------
+  
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleFirstClick = useCallback(() => {
+    initializeAudio();
+  }, [initializeAudio]);
+
+  const handleSettingsToggle = useCallback(() => {
+    setActiveSettings(!activeSettings);
+  }, [activeSettings, setActiveSettings]);
+
+  const handleAnalyticsToggle = useCallback(() => {
+    setActiveAnalytics(!activeAnalytics);
+  }, [activeAnalytics, setActiveAnalytics]);
+
+  const handleRewardShopClick = useCallback(() => {
+    setShowRewardShop(true);
+  }, [setShowRewardShop]);
+
+  const handleDateSelect = useCallback((date: Date) => {
+    setSelectedDate(date);
+  }, [setSelectedDate]);
+
+  const handleDayInsights = useCallback(() => {
+    setShowDayInsights(true);
+  }, [setShowDayInsights]);
+
+  const handlePrevMonth = useCallback(() => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
+  }, [selectedDate, setSelectedDate]);
+
+  const handleNextMonth = useCallback(() => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
+  }, [selectedDate, setSelectedDate]);
+
+  const handleToday = useCallback(() => {
+    setSelectedDate(new Date());
+  }, [setSelectedDate]);
+
+  const handleFrequencyChange = useCallback((freq: any) => {
+    setActiveFreq(freq);
+  }, [setActiveFreq]);
+
+  const handleAddHabitClick = useCallback(() => {
+    setShowAddHabit(true);
+  }, [setShowAddHabit]);
+
+  const handleAddCategoryClick = useCallback(() => {
+    setShowAddCategory(true);
+  }, [setShowAddCategory]);
+
+  const handleSetGoals = useCallback((newGoals: any) => {
+    setGoals(newGoals);
+  }, [setGoals]);
+
+  const handleOpenShop = useCallback(() => {
+    setShowRewardShop(true);
+  }, [setShowRewardShop]);
+
+  const handleFeedbackClick = useCallback(() => {
+    playButtonClick();
+    window.open('mailto:renkai.studios0@gmail.com?subject=HabitQuest Feedback&body=Hi! I have some feedback about HabitQuest:', '_blank');
+  }, [playButtonClick]);
+
+  // Memoized modal close handlers
+  const handleCloseRewardShop = useCallback(() => {
+    setShowRewardShop(false);
+  }, [setShowRewardShop]);
+
+  const handleCloseDayInsights = useCallback(() => {
+    setShowDayInsights(false);
+  }, [setShowDayInsights]);
+
+  const handleCloseAnalytics = useCallback(() => {
+    setActiveAnalytics(false);
+  }, [setActiveAnalytics]);
+
+  const handleCloseSettings = useCallback(() => {
+    setActiveSettings(false);
+  }, [setActiveSettings]);
+
+  const handleCloseAddHabit = useCallback(() => {
+    setShowAddHabit(false);
+  }, [setShowAddHabit]);
+
+  const handleCloseAddReward = useCallback(() => {
+    setShowAddReward(false);
+  }, [setShowAddReward]);
+
+  const handleCloseAddCategory = useCallback(() => {
+    setShowAddCategory(false);
+  }, [setShowAddCategory]);
+
+  // Memoized habit save handlers
+  const handleHabitSave = useCallback((_h: any) => {
+    // addHabit(h); // TODO: Implement when addHabit is available
+    setShowAddHabit(false);
+  }, [setShowAddHabit]);
+
+  const handleRewardSave = useCallback((_payload: any) => {
+    // addReward(payload.name, payload.cost); // TODO: Implement when addReward is available
+    setShowAddReward(false);
+  }, [setShowAddReward]);
+
+  const handleCategorySave = useCallback((_data: any) => {
+    // addCategory(name, target); // TODO: Implement when addCategory is available
+    setShowAddCategory(false);
+  }, [setShowAddCategory]);
+
+  // Memoized features array to prevent recreation on every render
+  const features = useMemo(() => [
+    {
+      icon: "📅",
+      title: "Calendar Revamp",
+      description: "Sun–Sat headers for quick scanning, click any date to view & complete habits for that day, and period keys now follow your selected date so daily/monthly resets are crystal-clear."
+    },
+    {
+      icon: "🆕",
+      title: "Custom Categories",
+      description: "Add your own categories with personalized XP targets, instantly available in both the goal tracker and Add Habit modal."
+    },
+    {
+      icon: "📦",
+      title: "Enhanced Inventory",
+      description: "Your redeemed rewards are now displayed in a beautiful grid layout with improved visual design and better organization."
+    },
+    {
+      icon: "🔁",
+      title: "Smart Habit Types",
+      description: "Recurring habits repeat every period, while Specific habits only show on their set date/month/year for better flexibility."
+    },
+    {
+      icon: "✨",
+      title: "UI Polish",
+      description: "Motion-based progress bars, smoother calendar hover/tap micro-interactions, animated layout shifts, and subtle spacing refinements for a more balanced look."
+    },
+    {
+      icon: "🎵",
+      title: "Audio Experience",
+      description: "Enhanced sound system with better volume controls, improved toggle alignment, and persistent audio settings for a more immersive experience."
+    }
+  ], []);
+
+  // -------------------------------------------------------------------
   // Render (header, calendar, tabs, and habit list)
   // -------------------------------------------------------------------
-  // Initialize audio on first user interaction
-  const handleFirstClick = () => {
-    initializeAudio();
-  };
 
   return (
     <AppBackground>
@@ -135,27 +277,27 @@ export default function HabitGoalTrackerV3() {
           points={points}
           activeSettings={activeSettings}
           activeAnalytics={activeAnalytics}
-          onSettingsToggle={() => setActiveSettings(!activeSettings)}
-          onAnalyticsToggle={() => setActiveAnalytics(!activeAnalytics)}
-          onRewardShopClick={() => setShowRewardShop(true)}
+          onSettingsToggle={handleSettingsToggle}
+          onAnalyticsToggle={handleAnalyticsToggle}
+          onRewardShopClick={handleRewardShopClick}
         />
         {/* Calendar */}
         <CalendarSection
           selectedDate={selectedDate}
           completedDaysSet={completedDaysSet}
           periodKey={periodKey}
-          onDateSelect={(date) => setSelectedDate(date)}
-          onDayInsights={() => setShowDayInsights(true)}
-          onPrevMonth={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))}
-          onNextMonth={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))}
-          onToday={() => setSelectedDate(new Date())}
+          onDateSelect={handleDateSelect}
+          onDayInsights={handleDayInsights}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onToday={handleToday}
         />
 
         {/* Enhanced Frequency Tabs */}
         <FrequencyTabs
           activeFreq={activeFreq}
-          onFrequencyChange={(freq) => setActiveFreq(freq)}
-          onAddHabit={() => setShowAddHabit(true)}
+          onFrequencyChange={handleFrequencyChange}
+          onAddHabit={handleAddHabitClick}
         />
 
         {/* Daily Stats Overview */}
@@ -180,8 +322,8 @@ export default function HabitGoalTrackerV3() {
           categoryXP={categoryXP}
           goals={goals}
           selectedDate={selectedDate}
-          onAddCategory={() => setShowAddCategory(true)}
-          onSetGoals={(newGoals) => setGoals(newGoals)}
+          onAddCategory={handleAddCategoryClick}
+          onSetGoals={handleSetGoals}
         />
         
         {/* Rewards Shop Section */}
@@ -189,7 +331,7 @@ export default function HabitGoalTrackerV3() {
           shop={shop}
           inventory={inventory}
           points={points}
-          onOpenShop={() => setShowRewardShop(true)}
+          onOpenShop={handleOpenShop}
           onDeleteReward={deleteReward}
           onRedeemReward={handleRedeemReward}
         />
@@ -237,38 +379,7 @@ export default function HabitGoalTrackerV3() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              {[
-                {
-                  icon: "📅",
-                  title: "Calendar Revamp",
-                  description: "Sun–Sat headers for quick scanning, click any date to view & complete habits for that day, and period keys now follow your selected date so daily/monthly resets are crystal-clear."
-                },
-                {
-                  icon: "🆕",
-                  title: "Custom Categories",
-                  description: "Add your own categories with personalized XP targets, instantly available in both the goal tracker and Add Habit modal."
-                },
-                {
-                  icon: "📦",
-                  title: "Enhanced Inventory",
-                  description: "Your redeemed rewards are now displayed in a beautiful grid layout with improved visual design and better organization."
-                },
-                {
-                  icon: "🔁",
-                  title: "Smart Habit Types",
-                  description: "Recurring habits repeat every period, while Specific habits only show on their set date/month/year for better flexibility."
-                },
-                {
-                  icon: "✨",
-                  title: "UI Polish",
-                  description: "Motion-based progress bars, smoother calendar hover/tap micro-interactions, animated layout shifts, and subtle spacing refinements for a more balanced look."
-                },
-                {
-                  icon: "🎵",
-                  title: "Audio Experience",
-                  description: "Enhanced sound system with better volume controls, improved toggle alignment, and persistent audio settings for a more immersive experience."
-                }
-              ].map((feature, idx) => (
+              {features.map((feature, idx) => (
                 <motion.div
                   key={idx}
                   className="
@@ -332,10 +443,7 @@ export default function HabitGoalTrackerV3() {
           transition={{ duration: 0.5, delay: 0.8 }}
         >
           <motion.button
-            onClick={() => {
-              playButtonClick();
-              window.open('mailto:renkai.studios0@gmail.com?subject=HabitQuest Feedback&body=Hi! I have some feedback about HabitQuest:', '_blank');
-            }}
+            onClick={handleFeedbackClick}
             className="
               group relative overflow-hidden
               bg-gradient-to-br from-blue-500 to-purple-600
@@ -376,10 +484,10 @@ export default function HabitGoalTrackerV3() {
         showDayInsights={showDayInsights}
         activeAnalytics={activeAnalytics}
         activeSettings={activeSettings}
-        onCloseRewardShop={() => setShowRewardShop(false)}
-        onCloseDayInsights={() => setShowDayInsights(false)}
-        onCloseAnalytics={() => setActiveAnalytics(false)}
-        onCloseSettings={() => setActiveSettings(false)}
+        onCloseRewardShop={handleCloseRewardShop}
+        onCloseDayInsights={handleCloseDayInsights}
+        onCloseAnalytics={handleCloseAnalytics}
+        onCloseSettings={handleCloseSettings}
         shop={shop}
         inventory={inventory}
         points={points}
@@ -402,11 +510,8 @@ export default function HabitGoalTrackerV3() {
       <AnimatePresence>
         {showAddHabit && (
           <AddHabitModal
-            onClose={() => setShowAddHabit(false)}
-            onSave={(_h: any) => {
-              // addHabit(h); // TODO: Implement when addHabit is available
-              setShowAddHabit(false);
-            }}
+            onClose={handleCloseAddHabit}
+            onSave={handleHabitSave}
             categories={categories}
           />
         )}
@@ -414,22 +519,16 @@ export default function HabitGoalTrackerV3() {
       <AnimatePresence>
         {showAddReward && (
           <AddRewardModal
-            onClose={() => setShowAddReward(false)}
-            onSave={(_payload: any) => {
-              // addReward(payload.name, payload.cost); // TODO: Implement when addReward is available
-              setShowAddReward(false);
-            }}
+            onClose={handleCloseAddReward}
+            onSave={handleRewardSave}
           />
         )}
       </AnimatePresence>
       <AnimatePresence>
         {showAddCategory && (
           <AddCategoryModal
-            onClose={() => setShowAddCategory(false)}
-            onSave={(_data: any) => {
-              // addCategory(name, target); // TODO: Implement when addCategory is available
-              setShowAddCategory(false);
-            }}
+            onClose={handleCloseAddCategory}
+            onSave={handleCategorySave}
           />
         )}
       </AnimatePresence>
@@ -437,7 +536,7 @@ export default function HabitGoalTrackerV3() {
       {/* Settings Panel */}
       <SettingsModal
         isOpen={activeSettings}
-        onClose={() => setActiveSettings(false)}
+        onClose={handleCloseSettings}
         audioEnabled={audioEnabled}
         backgroundMusicEnabled={backgroundMusicEnabled}
         soundEffectsVolume={soundEffectsVolume}
@@ -459,3 +558,6 @@ export default function HabitGoalTrackerV3() {
     </AppBackground>
   );
 }
+
+// Export memoized component for better performance
+export default memo(HabitGoalTrackerV3);

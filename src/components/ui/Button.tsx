@@ -58,6 +58,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         hover:bg-neutral-100/60 dark:hover:bg-neutral-700/60
         focus:ring-neutral-500 dark:focus:ring-neutral-400
         hover:text-neutral-900 dark:hover:text-white
+        dark:bg-transparent dark:text-neutral-100
+        dark:border-neutral-500/70 dark:hover:bg-neutral-700/60
+        dark:hover:text-white
       `,
       ghost: `
         bg-transparent border-transparent
@@ -65,6 +68,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         hover:bg-neutral-100/60 dark:hover:bg-neutral-700/60
         focus:ring-neutral-500 dark:focus:ring-neutral-400
         hover:text-neutral-900 dark:hover:text-white
+        dark:bg-transparent dark:text-neutral-100
+        dark:hover:bg-neutral-700/60 dark:hover:text-white
       `,
       danger: `
         text-white bg-gradient-to-r from-rose-500 to-red-600

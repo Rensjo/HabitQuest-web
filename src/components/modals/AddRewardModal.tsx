@@ -38,19 +38,13 @@ export function AddRewardModal({
         onClick={(e) => e.stopPropagation()}
         className="
           w-full max-w-lg
-          bg-white/95 dark:bg-neutral-900/60
+          bg-white/95 dark:bg-neutral-900/95
           backdrop-blur-md
-          border border-neutral-200/50 dark:border-0
+          border border-neutral-200/50 dark:border-neutral-700/50
           rounded-3xl p-8 
           shadow-xl shadow-black/10 dark:shadow-black/40
           relative overflow-hidden
         "
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
-          ...(typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? {
-            background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.8) 100%)'
-          } : {})
-        }}
         initial={{ y: 20, opacity: 0, scale: 0.9 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 20, opacity: 0, scale: 0.9 }}
