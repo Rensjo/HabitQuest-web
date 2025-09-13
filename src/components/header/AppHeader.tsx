@@ -67,11 +67,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             >
               <featureIcons.compass 
                 size={48} 
-                className="text-amber-500 dark:text-amber-400 drop-shadow-lg" 
+                className="text-amber-500 dark:text-purple-400 drop-shadow-lg" 
               />
             </motion.div>
             <motion.h1 
-              className="text-3xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 dark:from-amber-400 dark:via-orange-400 dark:to-yellow-400 bg-clip-text text-transparent drop-shadow-lg"
+              className="text-3xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 dark:from-purple-500 dark:via-violet-500 dark:to-indigo-500 bg-clip-text text-transparent drop-shadow-lg"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
@@ -85,7 +85,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                ____________Your Daily Habit-Tracking Tool For Consistency and Progress_______________________________________________________________
+                ____________Your Daily Habit-Tracking Tool For Consistency and Progress_______________________________________________________
               </motion.p>
 
               {/* Stats Grid - Below Title - All 4 in One Row */}

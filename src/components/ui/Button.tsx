@@ -1,14 +1,15 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { Icon } from './Icon';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success';
   size?: 'sm' | 'md' | 'lg';
   icon?: string;
   iconPosition?: 'left' | 'right';
   loading?: boolean;
+  children?: React.ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -52,16 +53,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         border-purple-400 focus:ring-purple-500
       `,
       outline: `
-        bg-transparent text-neutral-800 dark:text-neutral-200
-        border-neutral-300/70 dark:border-neutral-600/70
-        hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60
-        focus:ring-neutral-500
+        bg-transparent text-neutral-800 dark:text-neutral-100
+        border-neutral-300/70 dark:border-neutral-500/70
+        hover:bg-neutral-100/60 dark:hover:bg-neutral-700/60
+        focus:ring-neutral-500 dark:focus:ring-neutral-400
+        hover:text-neutral-900 dark:hover:text-white
       `,
       ghost: `
         bg-transparent border-transparent
-        text-neutral-800 dark:text-neutral-200
-        hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60
-        focus:ring-neutral-500
+        text-neutral-800 dark:text-neutral-100
+        hover:bg-neutral-100/60 dark:hover:bg-neutral-700/60
+        focus:ring-neutral-500 dark:focus:ring-neutral-400
+        hover:text-neutral-900 dark:hover:text-white
       `,
       danger: `
         text-white bg-gradient-to-r from-rose-500 to-red-600
