@@ -1,108 +1,72 @@
 # HabitQuest Build Workflows
 
-This directory contains GitHub Actions workflows for building and releasing HabitQuest across multiple platforms.
+This directory contains a streamlined GitHub Actions workflow for building and packaging HabitQuest across all platforms.
 
-## Workflows
+## Workflow
 
-### 1. CI - Test Build (`ci.yml`)
-**Trigger**: Pull requests and pushes to main branch
-**Purpose**: Quick validation of code changes
+### Build Release Packages (`build-packages.yml`)
+**Trigger**: Manual dispatch, pushes to main/develop, pull requests
+**Purpose**: Create downloadable zip packages for all platforms
 
-- Runs on: Windows, macOS (Intel & ARM), Linux
-- Tests frontend build
-- Runs linting and type checking
-- Performs test Tauri builds (no artifacts)
-
-### 2. Release Build (`release.yml`)
-**Trigger**: Manual dispatch, tags starting with `v`, or published releases
-**Purpose**: Create production-ready artifacts for distribution
+#### Platforms Built:
+- **Windows x64**: MSI and NSIS installers packaged as zips
+- **macOS ARM64**: DMG and app bundles for Apple Silicon Macs
+- **macOS x64**: DMG and app bundles for Intel Macs  
+- **Linux x64**: AppImage and DEB packages
 
 #### Artifacts Created:
-
-**Windows:**
-- MSI installers (x64 & x86)
-- NSIS installers (x64 & x86)
-
-**macOS:**
-- DMG disk images (Intel & ARM64)
-- App bundles (Intel & ARM64)
-
-**Linux:**
-- AppImage (portable, x64)
-- DEB packages (x64)
-
-### 3. macOS DMG (`build-macos.yml`)
-**Trigger**: Manual dispatch and pushes to main
-**Purpose**: Legacy macOS-specific build (can be removed if not needed)
+- `HabitQuest-windows-x64-msi.zip` - Windows MSI installer
+- `HabitQuest-windows-x64-setup.zip` - Windows NSIS setup
+- `HabitQuest-macos-arm64.zip` - macOS ARM64 DMG
+- `HabitQuest-macos-arm64-app.zip` - macOS ARM64 app bundle
+- `HabitQuest-macos-x64.zip` - macOS Intel DMG
+- `HabitQuest-macos-x64-app.zip` - macOS Intel app bundle
+- `HabitQuest-linux-x64.zip` - Linux AppImage
+- `HabitQuest-linux-x64-deb.zip` - Linux DEB package
 
 ## Usage
 
-### Running a Release Build
+### Running a Build
 
-1. **Via Git Tag:**
-   ```bash
-   git tag v3.2.1
-   git push origin v3.2.1
-   ```
-
-2. **Via Manual Dispatch:**
+1. **Automatic**: Pushes to `main` or `develop` branch trigger builds
+2. **Manual**: 
    - Go to GitHub Actions tab
-   - Select "Release Build" workflow
+   - Select "Build Release Packages" workflow  
    - Click "Run workflow"
-   - Enter version (e.g., `v3.2.1`)
+   - Choose branch and run
 
-### Required Secrets
+### Downloading Packages
 
-For release builds with code signing, add these to repository secrets:
+After a successful build:
+1. Go to the Actions run page
+2. Scroll to "Artifacts" section at the bottom
+3. Download the zip package for your platform
+4. Extract and install/run the appropriate file
 
-```
-TAURI_PRIVATE_KEY     # Private key for Tauri updater (optional)
-TAURI_KEY_PASSWORD    # Password for the private key (optional)
-```
+### Platform Installation
+
+**Windows:**
+- Extract `HabitQuest-windows-x64-msi.zip` → Run the `.msi` file
+- Or extract `HabitQuest-windows-x64-setup.zip` → Run the `.exe` file
+
+**macOS:**
+- Extract `HabitQuest-macos-arm64.zip` (Apple Silicon) or `HabitQuest-macos-x64.zip` (Intel)
+- Open the `.dmg` file → Drag to Applications folder
+
+**Linux:**
+- Extract `HabitQuest-linux-x64.zip` → Run the `.AppImage` file (no installation needed)
+- Or extract `HabitQuest-linux-x64-deb.zip` → Install with `sudo dpkg -i *.deb`
 
 ## Build Targets
 
-### Windows
-- `x86_64-pc-windows-msvc` (64-bit)
-- `i686-pc-windows-msvc` (32-bit)
+- **Windows**: x86_64-pc-windows-msvc (64-bit)
+- **macOS**: aarch64-apple-darwin (Apple Silicon) + x86_64-apple-darwin (Intel) 
+- **Linux**: x86_64-unknown-linux-gnu (64-bit)
 
-### macOS  
-- `aarch64-apple-darwin` (Apple Silicon)
-- `x86_64-apple-darwin` (Intel)
+## Dependencies
 
-### Linux
-- `x86_64-unknown-linux-gnu` (64-bit)
-
-## Artifacts
-
-All successful builds create downloadable artifacts that can be:
-- Downloaded from the Actions run page
-- Automatically uploaded to GitHub Releases (for release builds)
-- Used for testing and distribution
-
-## Troubleshooting
-
-### Common Issues:
-
-1. **Build fails on Linux**: Ensure system dependencies are installed
-2. **macOS build fails**: Check Xcode command line tools
-3. **Windows build fails**: Verify Visual Studio Build Tools
-4. **Missing artifacts**: Check if the workflow completed successfully
-
-### Dependencies
-
-The workflows automatically install:
+The workflow automatically installs:
 - Node.js 20
-- Rust toolchain
-- Platform-specific build tools
-- Tauri CLI
-
-## File Structure
-
-```
-.github/workflows/
-├── ci.yml              # Continuous integration
-├── release.yml         # Release builds
-├── build-macos.yml     # Legacy macOS build
-└── README.md          # This file
-```
+- Rust toolchain with appropriate targets
+- Platform-specific system dependencies
+- Tauri CLI via tauri-action
