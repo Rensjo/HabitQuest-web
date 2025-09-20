@@ -1,17 +1,21 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "habitquest"
+version = "4.1.2"
+description = "Gamified habit tracking application"
+authors = ["RenKaiStudios"]
+license = "MIT"
+repository = "https://github.com/Rensjo/HabitQuest-web"
 edition = "2021"
 rust-version = "1.77.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "habitquest"
+path = "src/main.rs"
+
 [lib]
-name = "app_lib"
+name = "habitquest_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

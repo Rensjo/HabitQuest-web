@@ -42,10 +42,10 @@
     ],
     "resources": [],
     "externalBin": [],
-    "copyright": "© 2024 RenKaiStudios. All rights reserved.",
+    "copyright": "© 2025 RenKaiStudios. All rights reserved.",
     "category": "Productivity",
-    "shortDescription": "A gamified habit tracking application",
-    "longDescription": "HabitQuest is a powerful habit tracking application that gamifies your daily routines and helps you build lasting positive habits through XP, rewards, and progress tracking.",
+    "shortDescription": "Gamified habit tracking application",
+    "longDescription": "HabitQuest is a gamified habit tracking application by RenKaiStudios that transforms your daily habits into an engaging RPG-like experience. Build lasting positive habits through XP points, rewards, streaks, and progress tracking.",
     "macOS": {
       "frameworks": [],
       "minimumSystemVersion": "10.15",
