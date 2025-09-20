@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
-import { useTheme } from '../../hooks/useTheme.tsx';
+import { useTheme } from '../../hooks/useTheme';
 import { useAppStore } from '../../store/appStore';
 import { calculateStorageHealth, formatBytes, getStorageHealthColor, getStorageHealthBgColor, cleanupCacheData, type StorageHealth } from '../../utils/storageHealth';
 
@@ -62,39 +62,124 @@ export function SettingsModal({
     onBackgroundMusicVolumeChange(volume);
   };
 
-  const handleExport = () => {
+  // Data management state
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
+  const [showImportOptions, setShowImportOptions] = useState(false);
+  const [pendingImportData, setPendingImportData] = useState<string | null>(null);
+
+  const handleExport = async () => {
     playClick();
-    const data = exportData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `habitquest-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setIsExporting(true);
+    
+    try {
+      // Add a small delay for UI feedback
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const data = exportData();
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const timeString = new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }).replace(':', '');
+      
+      a.download = `habitquest-backup-${timestamp}-${timeString}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Show success feedback
+      alert('✅ Data exported successfully! Your backup file has been downloaded.');
+    } catch (error) {
+      alert('❌ Export failed. Please try again.');
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
+    
+    setIsImporting(true);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = e.target?.result as string;
-        if (importData(data)) {
-          alert('Data imported successfully!');
-          onClose();
-        } else {
-          alert('Failed to import data. Please check the file format.');
+        
+        // Validate the data first
+        const parsed = JSON.parse(data);
+        const validation = useAppStore.getState().validateImportData(parsed);
+        
+        if (!validation.isValid) {
+          alert(`❌ Invalid backup file:\n${validation.errors.join('\n')}`);
+          setIsImporting(false);
+          return;
         }
+        
+        // Show import options for user to choose merge mode
+        setPendingImportData(data);
+        setShowImportOptions(true);
+        setIsImporting(false);
+        
       } catch (error) {
-        alert('Error reading file.');
+        alert('❌ Error reading backup file. Please ensure it\'s a valid HabitQuest backup.');
+        setIsImporting(false);
+        console.error('Import file read error:', error);
       }
     };
     reader.readAsText(file);
+    
+    // Reset the input value so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const handleImportConfirm = (mergeMode: 'replace' | 'merge') => {
+    if (!pendingImportData) return;
+    
+    playClick();
+    setIsImporting(true);
+    
+    try {
+      const result = importData(pendingImportData, mergeMode);
+      
+      if (result.success) {
+        const summary = result.summary;
+        const mode = mergeMode === 'merge' ? 'merged with' : 'replaced';
+        
+        alert(
+          `✅ Data ${mode} successfully!\n\n` +
+          `📊 Summary:\n` +
+          `• Habits: ${summary.habits}\n` +
+          `• Points: ${summary.points}\n` +
+          `• Categories: ${summary.categories}\n` +
+          `• Rewards: ${summary.rewards}\n\n` +
+          `Your progress has been restored!`
+        );
+        
+        setImportResult(result);
+        onClose();
+      } else {
+        alert(`❌ Import failed: ${result.error}\n\nPlease check your backup file and try again.`);
+      }
+    } catch (error) {
+      alert('❌ An unexpected error occurred during import.');
+      console.error('Import error:', error);
+    } finally {
+      setIsImporting(false);
+      setShowImportOptions(false);
+      setPendingImportData(null);
+    }
   };
 
   const handleReset = () => {
@@ -146,12 +231,14 @@ export function SettingsModal({
     playClick();
     // Convert color name to hex values for gradient
     const colorMap: Record<string, string[]> = {
-      blue: ['#3b82f6', '#1d4ed8'],
-      emerald: ['#10b981', '#047857'],
-      purple: ['#8b5cf6', '#7c3aed'],
-      amber: ['#f59e0b', '#d97706'],
-      rose: ['#f43f5e', '#e11d48'],
-      cyan: ['#06b6d4', '#0891b2']
+      blue: ['#3b82f6', '#1d4ed8', '#1e40af'],
+      emerald: ['#10b981', '#047857', '#065f46'],
+      purple: ['#8b5cf6', '#7c3aed', '#6d28d9'],
+      amber: ['#f59e0b', '#d97706', '#b45309'],
+      rose: ['#f43f5e', '#e11d48', '#be123c'],
+      cyan: ['#06b6d4', '#0891b2', '#0e7490'],
+      black: ['#000000', '#1f2937', '#374151'],
+      white: ['#ffffff', '#f3f4f6', '#e5e7eb']
     };
     
     if (colorMap[color]) {
@@ -421,27 +508,26 @@ export function SettingsModal({
                     {/* Accent Color */}
                     <div className="p-4 rounded-xl bg-gradient-to-r from-neutral-50/50 to-neutral-100/50 dark:from-neutral-800/50 dark:to-neutral-700/50 border border-neutral-200/30 dark:border-neutral-600/30">
                       <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm mb-3">Accent Color</div>
-                      <div className="grid grid-cols-6 gap-2">
+                      <div className="grid grid-cols-8 gap-2">
                         {[
-                          { color: 'blue', class: 'bg-blue-500' },
-                          { color: 'emerald', class: 'bg-emerald-500' },
-                          { color: 'purple', class: 'bg-purple-500' },
-                          { color: 'amber', class: 'bg-amber-500' },
-                          { color: 'rose', class: 'bg-rose-500' },
-                          { color: 'cyan', class: 'bg-cyan-500' }
+                          { color: 'blue', class: 'bg-blue-500', hex: '#3b82f6' },
+                          { color: 'emerald', class: 'bg-emerald-500', hex: '#10b981' },
+                          { color: 'purple', class: 'bg-purple-500', hex: '#8b5cf6' },
+                          { color: 'amber', class: 'bg-amber-500', hex: '#f59e0b' },
+                          { color: 'rose', class: 'bg-rose-500', hex: '#f43f5e' },
+                          { color: 'cyan', class: 'bg-cyan-500', hex: '#06b6d4' },
+                          { color: 'black', class: 'bg-black border border-neutral-300 dark:border-neutral-600', hex: '#000000' },
+                          { color: 'white', class: 'bg-white border border-neutral-300 dark:border-neutral-600', hex: '#ffffff' }
                         ].map((accent) => (
                           <motion.button
                             key={accent.color}
                             onClick={() => handleAccentColorChange(accent.color)}
                             className={`
                               w-8 h-8 rounded-full ${accent.class}
-                              ${gradientColors && gradientColors[0] === (accent.color === 'blue' ? '#3b82f6' : 
-                                accent.color === 'emerald' ? '#10b981' :
-                                accent.color === 'purple' ? '#8b5cf6' :
-                                accent.color === 'amber' ? '#f59e0b' :
-                                accent.color === 'rose' ? '#f43f5e' :
-                                accent.color === 'cyan' ? '#06b6d4' : '#3b82f6') ? 'ring-2 ring-blue-300 dark:ring-blue-400' : ''}
-                              shadow-lg transition-all duration-200
+                              ${gradientColors && gradientColors[0] === accent.hex ? 'ring-2 ring-blue-400 dark:ring-blue-300 ring-offset-2 ring-offset-white dark:ring-offset-neutral-800' : ''}
+                              shadow-lg transition-all duration-200 hover:shadow-xl
+                              ${accent.color === 'black' ? 'shadow-neutral-400/30 dark:shadow-neutral-600/30' : ''}
+                              ${accent.color === 'white' ? 'shadow-neutral-300/50 dark:shadow-neutral-500/50' : ''}
                             `}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -541,20 +627,29 @@ export function SettingsModal({
                     {/* Export Data */}
                     <motion.button
                       onClick={handleExport}
-                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/15 to-emerald-500/15 dark:from-green-500/30 dark:to-emerald-500/30 border border-green-300/60 dark:border-green-500/60 hover:from-green-500/25 hover:to-emerald-500/25 dark:hover:from-green-500/40 dark:hover:to-emerald-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-green-500/10 dark:shadow-green-500/20"
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
+                      disabled={isExporting}
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/15 to-emerald-500/15 dark:from-green-500/30 dark:to-emerald-500/30 border border-green-300/60 dark:border-green-500/60 hover:from-green-500/25 hover:to-emerald-500/25 dark:hover:from-green-500/40 dark:hover:to-emerald-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-green-500/10 dark:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      whileHover={!isExporting ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={!isExporting ? { scale: 0.98 } : {}}
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-green-500/15 dark:bg-green-500/30">
-                          <featureIcons.download className="w-4 h-4 text-green-600 dark:text-green-300" />
+                          {isExporting ? (
+                            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <featureIcons.download className="w-4 h-4 text-green-600 dark:text-green-300" />
+                          )}
                         </div>
                         <div className="text-left">
-                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Export Data</div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400">Download your habits and progress data</div>
+                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">
+                            {isExporting ? 'Exporting...' : 'Export Data'}
+                          </div>
+                          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                            {isExporting ? 'Preparing your backup file' : 'Download your habits and progress data'}
+                          </div>
                         </div>
                       </div>
-                      <featureIcons.chevronRight className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      {!isExporting && <featureIcons.chevronRight className="w-4 h-4 text-green-600 dark:text-green-400" />}
                     </motion.button>
 
                     {/* Import Data */}
@@ -562,26 +657,35 @@ export function SettingsModal({
                       <input
                         type="file"
                         accept=".json"
-                        onChange={handleImport}
+                        onChange={handleImportFileSelect}
                         className="hidden"
                         id="import-file"
                       />
                       <motion.button
                         onClick={() => document.getElementById('import-file')?.click()}
-                        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/15 to-cyan-500/15 dark:from-blue-500/30 dark:to-cyan-500/30 border border-blue-300/60 dark:border-blue-500/60 hover:from-blue-500/25 hover:to-cyan-500/25 dark:hover:from-blue-500/40 dark:hover:to-cyan-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-blue-500/10 dark:shadow-blue-500/20"
-                        whileHover={{ scale: 1.02, y: -2 }}
-                        whileTap={{ scale: 0.98 }}
+                        disabled={isImporting}
+                        className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/15 to-cyan-500/15 dark:from-blue-500/30 dark:to-cyan-500/30 border border-blue-300/60 dark:border-blue-500/60 hover:from-blue-500/25 hover:to-cyan-500/25 dark:hover:from-blue-500/40 dark:hover:to-cyan-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg shadow-blue-500/10 dark:shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        whileHover={!isImporting ? { scale: 1.02, y: -2 } : {}}
+                        whileTap={!isImporting ? { scale: 0.98 } : {}}
                       >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-blue-500/15 dark:bg-blue-500/30">
-                          <featureIcons.upload className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+                          {isImporting ? (
+                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <featureIcons.upload className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+                          )}
                         </div>
                         <div className="text-left">
-                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Import Data</div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400">Import habits and progress from backup</div>
+                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">
+                            {isImporting ? 'Processing...' : 'Import Data'}
+                          </div>
+                          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                            {isImporting ? 'Reading backup file' : 'Import habits and progress from backup'}
+                          </div>
                         </div>
                       </div>
-                      <featureIcons.chevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      {!isImporting && <featureIcons.chevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
                       </motion.button>
                     </div>
 
@@ -745,6 +849,89 @@ export function SettingsModal({
                 </motion.div>
               </div>
             </div>
+          </motion.div>
+        </motion.div>
+      )}
+      
+      {/* Import Options Dialog */}
+      {showImportOptions && (
+        <motion.div 
+          className="fixed inset-0 flex items-center justify-center p-4 z-[60]"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowImportOptions(false)} />
+          
+          <motion.div 
+            className="relative bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md border border-neutral-200/50 dark:border-neutral-700/50 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          >
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <featureIcons.database className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">Import Options</h3>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">Choose how to handle your existing data</p>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <motion.button
+                onClick={() => handleImportConfirm('replace')}
+                disabled={isImporting}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-rose-500/10 dark:from-red-500/20 dark:to-rose-500/20 border border-red-300/60 dark:border-red-500/60 hover:from-red-500/20 hover:to-rose-500/20 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 transition-all duration-200 text-left disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/15 dark:bg-red-500/25">
+                    {isImporting ? (
+                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <featureIcons.refreshCw className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Replace All Data</div>
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400">⚠️ This will completely replace your current progress</div>
+                  </div>
+                </div>
+              </motion.button>
+
+              <motion.button
+                onClick={() => handleImportConfirm('merge')}
+                disabled={isImporting}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 border border-green-300/60 dark:border-green-500/60 hover:from-green-500/20 hover:to-emerald-500/20 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 transition-all duration-200 text-left disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/15 dark:bg-green-500/25">
+                    {isImporting ? (
+                      <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <featureIcons.plus className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Merge Data</div>
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400">✅ Combines backup with your current progress safely</div>
+                  </div>
+                </div>
+              </motion.button>
+            </div>
+
+            <motion.button
+              onClick={() => setShowImportOptions(false)}
+              disabled={isImporting}
+              className="w-full p-3 rounded-xl bg-neutral-100/50 dark:bg-neutral-800/50 hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 border border-neutral-300/60 dark:border-neutral-600/60 transition-all duration-200 disabled:opacity-50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Cancel</span>
+            </motion.button>
           </motion.div>
         </motion.div>
       )}

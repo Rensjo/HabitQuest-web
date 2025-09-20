@@ -4,6 +4,7 @@ import { featureIcons } from '../../utils/icons';
 import { GamificationStatus } from '../gamification';
 import { ThemeToggle } from '../ui';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
+import { getLevelProgress, getXPToNextLevel } from '../../utils';
 
 interface AppHeaderProps {
   // Stats data
@@ -41,6 +42,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRewardShopClick
 }) => {
   const { playButtonClick, playHover } = useSoundEffectsOnly();
+  
+  // Calculate level progress and XP to next level
+  const levelProgress = getLevelProgress(totalXP);
+  const xpToNext = getXPToNextLevel(totalXP);
 
   return (
     <motion.div 
@@ -492,8 +497,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <GamificationStatus
               level={level}
               currentXP={totalXP}
-              xpToNext={Math.max(0, level * 500 - totalXP)}
-              levelProgress={Math.min(100, Math.round((totalXP / (level * 500)) * 100 * 100) / 100)}
+              xpToNext={xpToNext}
+              levelProgress={levelProgress}
               streakDays={overallStreak}
               points={points}
               onRewardShopClick={onRewardShopClick}

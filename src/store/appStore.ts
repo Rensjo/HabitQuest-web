@@ -8,6 +8,7 @@ import type {
   UserStats 
 } from '../types';
 import { DEFAULT_CATEGORIES } from '../types';
+import { getCurrentLevel, getLevelProgress, getXPToNextLevel } from '../utils';
 
 const defaultSettings: AppSettings = {
   theme: 'auto',
@@ -54,7 +55,8 @@ interface AppStore extends StoredData {
   
   // Storage
   exportData: () => string;
-  importData: (data: string) => boolean;
+  importData: (data: string, mergeMode?: 'replace' | 'merge') => { success: boolean; error?: string; details?: any; mode?: string; metadata?: any; summary?: any };
+  validateImportData: (data: any) => { isValid: boolean; errors: string[]; warningCount?: number };
   resetData: () => void;
 }
 
@@ -177,16 +179,12 @@ export const useAppStore = create<AppStore>()(
       // Computed values
       getLevel: () => {
         const { totalXP } = get();
-        return Math.floor(Math.sqrt(totalXP) / 2) + 1;
+        return getCurrentLevel(totalXP);
       },
       
       getLevelProgress: () => {
         const { totalXP } = get();
-        const level = get().getLevel();
-        const currentLevelXP = Math.pow((level - 1) * 2, 2);
-        const nextLevelXP = Math.pow(level * 2, 2);
-        const span = nextLevelXP - currentLevelXP;
-        return Math.min(100, Math.round(((totalXP - currentLevelXP) / span) * 100));
+        return getLevelProgress(totalXP);
       },
       
       getCategoryXP: (month) => {
@@ -194,10 +192,11 @@ export const useAppStore = create<AppStore>()(
         return {};
       },
       
-      // Storage utilities
+      // Enhanced storage utilities for seamless device migration
       exportData: () => {
         const state = get();
-        return JSON.stringify({
+        const exportedData = {
+          // Core app data
           habits: state.habits,
           points: state.points,
           totalXP: state.totalXP,
@@ -209,17 +208,177 @@ export const useAppStore = create<AppStore>()(
           userStats: state.userStats,
           settings: state.settings,
           version: state.version,
-        });
+          
+          // Migration metadata
+          _metadata: {
+            exportVersion: '4.1.2.0',
+            exportDate: new Date().toISOString(),
+            exportSource: 'HabitQuest-Web',
+            dataIntegrity: {
+              totalHabits: state.habits.length,
+              totalRewards: state.shop.length,
+              totalCategories: state.categories?.length || 0,
+              hasAchievements: (state.achievements?.length || 0) > 0,
+              settingsIncluded: !!state.settings
+            },
+            // Add checksum for data validation
+            checksum: btoa(JSON.stringify({
+              habits: state.habits.length,
+              points: state.points,
+              totalXP: state.totalXP,
+              timestamp: Date.now()
+            }))
+          }
+        };
+        
+        return JSON.stringify(exportedData, null, 2);
       },
       
-      importData: (data) => {
+      importData: (data, mergeMode = 'replace') => {
         try {
-          const parsed = JSON.parse(data) as StoredData;
-          set(parsed);
-          return true;
-        } catch {
-          return false;
+          const parsed = JSON.parse(data);
+          
+          // Validate data structure and version compatibility
+          const validation = get().validateImportData(parsed);
+          if (!validation.isValid) {
+            console.error('Import validation failed:', validation.errors);
+            return { success: false, error: 'Invalid data format', details: validation.errors };
+          }
+          
+          const currentState = get();
+          
+          if (mergeMode === 'merge') {
+            // Merge data intelligently - combine without duplicating
+            const mergedState = {
+              // Merge habits by ID, prefer imported data for conflicts
+              habits: [
+                ...currentState.habits.filter(h => !parsed.habits?.find((ph: any) => ph.id === h.id)),
+                ...(parsed.habits || [])
+              ],
+              
+              // Add points and XP together
+              points: currentState.points + (parsed.points || 0),
+              totalXP: currentState.totalXP + (parsed.totalXP || 0),
+              
+              // Merge goals (combine category targets)
+              goals: { ...currentState.goals, ...(parsed.goals || {}) },
+              
+              // Merge inventory without duplicates
+              inventory: [
+                ...currentState.inventory,
+                ...(parsed.inventory || []).filter((item: any) => 
+                  !currentState.inventory.find(existing => 
+                    existing.name === item.name && existing.redeemedAt === item.redeemedAt
+                  )
+                )
+              ],
+              
+              // Merge shop items by name
+              shop: [
+                ...currentState.shop.filter(s => !parsed.shop?.find((ps: any) => ps.name === s.name)),
+                ...(parsed.shop || [])
+              ],
+              
+              // Merge categories
+              categories: [...new Set([
+                ...(currentState.categories || []),
+                ...(parsed.categories || [])
+              ])],
+              
+              // Merge achievements by ID
+              achievements: [
+                ...currentState.achievements.filter(a => !parsed.achievements?.find((pa: any) => pa.id === a.id)),
+                ...(parsed.achievements || [])
+              ],
+              
+              // Use imported settings and stats (user likely wants the most recent)
+              userStats: parsed.userStats || currentState.userStats,
+              settings: parsed.settings || currentState.settings,
+              version: parsed.version || currentState.version,
+            };
+            
+            set(mergedState);
+          } else {
+            // Replace mode - use imported data directly
+            const importedState = {
+              habits: parsed.habits || [],
+              points: parsed.points || 0,
+              totalXP: parsed.totalXP || 0,
+              goals: parsed.goals || {},
+              inventory: parsed.inventory || [],
+              shop: parsed.shop || [],
+              categories: parsed.categories || DEFAULT_CATEGORIES,
+              achievements: parsed.achievements || [],
+              userStats: parsed.userStats || defaultUserStats,
+              settings: parsed.settings || defaultSettings,
+              version: parsed.version || '4.1.2.0',
+            };
+            
+            set(importedState);
+          }
+          
+          return { 
+            success: true, 
+            mode: mergeMode,
+            metadata: parsed._metadata,
+            summary: {
+              habits: parsed.habits?.length || 0,
+              points: parsed.points || 0,
+              categories: parsed.categories?.length || 0,
+              rewards: parsed.shop?.length || 0
+            }
+          };
+        } catch (error) {
+          console.error('Import error:', error);
+          return { success: false, error: 'Failed to parse data', details: error };
         }
+      },
+      
+      // Data validation helper
+      validateImportData: (data: any) => {
+        const errors: string[] = [];
+        
+        // Check if it's a valid object
+        if (!data || typeof data !== 'object') {
+          errors.push('Invalid data format - must be a valid JSON object');
+          return { isValid: false, errors };
+        }
+        
+        // Check for metadata and version compatibility
+        if (data._metadata) {
+          const metadata = data._metadata;
+          if (metadata.exportVersion && metadata.exportVersion.split('.')[0] !== '4') {
+            errors.push(`Version incompatibility - exported from v${metadata.exportVersion}, current is v4.x.x`);
+          }
+        }
+        
+        // Validate core data structures
+        if (data.habits && !Array.isArray(data.habits)) {
+          errors.push('Habits data must be an array');
+        }
+        
+        if (data.shop && !Array.isArray(data.shop)) {
+          errors.push('Shop data must be an array');
+        }
+        
+        if (data.goals && typeof data.goals !== 'object') {
+          errors.push('Goals data must be an object');
+        }
+        
+        // Validate habits structure if present
+        if (data.habits) {
+          data.habits.forEach((habit: any, index: number) => {
+            if (!habit.id || !habit.name) {
+              errors.push(`Habit at index ${index} missing required fields (id, name)`);
+            }
+          });
+        }
+        
+        return {
+          isValid: errors.length === 0,
+          errors,
+          warningCount: errors.filter(e => e.includes('incompatibility')).length
+        };
       },
       
       resetData: () => set({

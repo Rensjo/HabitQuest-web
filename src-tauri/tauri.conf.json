@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "HabitQuest",
-  "version": "3.2.0",
+  "version": "4.1.2",
   "identifier": "com.renkaistudios.habitquest",
   "build": {
     "frontendDist": "../dist",
@@ -53,7 +53,7 @@
       "signingIdentity": null,
       "providerShortName": null,
       "entitlements": null,
-      "bundleVersion": "3.2.0.1"
+      "bundleVersion": "4.1.2"
     },
     "windows": {
       "certificateThumbprint": null,

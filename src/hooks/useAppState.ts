@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSoundEffects } from './useSoundEffects';
 import { useHabitManagement } from './business';
-import type { Frequency, Habit } from '../types';
+import type { Frequency, Habit, Reward } from '../types';
 import { getPeriodKey, startOfMonth, endOfMonth } from '../utils';
 
 export function useAppState() {
@@ -20,9 +20,15 @@ export function useAppState() {
     habitVisibleOnDate,
     toggleComplete,
     deleteHabit,
+    addHabit,
     getCategoryXP,
     redeemReward,
+    addReward,
+    editReward,
     deleteReward,
+    addCategory,
+    deleteCategory,
+    editHabit,
     saveAppData
   } = useHabitManagement();
 
@@ -36,6 +42,10 @@ export function useAppState() {
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [showAddReward, setShowAddReward] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showUncategorizedHabits, setShowUncategorizedHabits] = useState(false);
+  const [showEditReward, setShowEditReward] = useState(false);
+  const [showDeleteReward, setShowDeleteReward] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   
   // Notification states
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -215,6 +225,10 @@ export function useAppState() {
     showAddHabit,
     showAddReward,
     showAddCategory,
+    showUncategorizedHabits,
+    showEditReward,
+    showDeleteReward,
+    selectedReward,
     
     // Notification state
     showLevelUp,
@@ -268,12 +282,22 @@ export function useAppState() {
     handleHabitComplete,
     handleRedeemReward,
     deleteHabit,
+    addHabit,
+    addReward,
+    editReward,
     deleteReward,
+    addCategory,
+    deleteCategory,
+    editHabit,
     getPeriodKeyWrapper,
     
     // Modal state setters
     setShowAddHabit,
     setShowAddReward,
-    setShowAddCategory
+    setShowAddCategory,
+    setShowUncategorizedHabits,
+    setShowEditReward,
+    setShowDeleteReward,
+    setSelectedReward
   };
 }

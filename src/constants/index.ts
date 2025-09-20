@@ -25,6 +25,9 @@ export const DEFAULT_CATEGORIES = [
   "SPIRITUAL",
 ] as const;
 
+/** Protected category that cannot be deleted - for orphaned habits */
+export const PROTECTED_FALLBACK_CATEGORY = "UNCATEGORIZED HABITS" as const;
+
 /**
  * Weekday labels (Sun–Sat) used by the calendar header.
  * Keep in sync with Date.getDay() semantics where 0 === Sunday.

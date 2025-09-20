@@ -86,9 +86,9 @@ export const GamificationStatus: React.FC<GamificationStatusProps> = ({
               <div className="flex justify-between items-center text-xs text-neutral-600 dark:text-neutral-400 mb-2">
                 <div className="flex items-center gap-1">
                   <ZapIcon size={iconSizes.xs} className="text-cyan-400" />
-                  <span>{currentXP.toLocaleString()} XP</span>
+                  <span>Level {level}</span>
                 </div>
-                <span>{xpToNext.toLocaleString()} to next</span>
+                <span>{xpToNext.toLocaleString()} XP to next</span>
               </div>
               
               {/* Animated Progress Bar */}

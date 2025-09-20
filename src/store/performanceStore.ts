@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { Habit, Reward, AppSettings } from '../types';
+import { getCurrentLevel } from '../utils';
 
 // ================================================================================================
 // UI STATE STORE (Lightweight, frequently changing)
@@ -187,7 +188,7 @@ export const useHabitDataStore = create<HabitDataState>()(
         }
         
         // Update level
-        state.level = Math.floor(Math.sqrt(state.totalXP) / 2) + 1;
+        state.level = getCurrentLevel(state.totalXP);
       }),
       
       addPoints: (amount) => set((state) => {
@@ -196,7 +197,7 @@ export const useHabitDataStore = create<HabitDataState>()(
       
       addXP: (amount) => set((state) => {
         state.totalXP = Math.max(0, state.totalXP + amount);
-        state.level = Math.floor(Math.sqrt(state.totalXP) / 2) + 1;
+        state.level = getCurrentLevel(state.totalXP);
       }),
       
       addReward: (rewardData) => set((state) => {

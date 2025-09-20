@@ -4,6 +4,7 @@ import { FREQUENCIES } from "../../constants";
 import { classNames } from "../../utils";
 import { featureIcons } from "../../utils/icons";
 import { useSoundEffectsOnly } from "../../hooks/useSoundEffects";
+import { CustomSelect } from "../ui/CustomSelect";
 import type { Frequency, Habit } from "../../types";
 
 export function AddHabitModal({
@@ -118,63 +119,29 @@ export function AddHabitModal({
               {/* Frequency and Category Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Frequency
-                  </label>
-                  <div className="relative">
-                    <select
-                      className="
-                        w-full rounded-xl px-4 py-3 text-sm appearance-none cursor-pointer
-                        bg-white/90 dark:bg-neutral-800/90
-                        border border-neutral-300/60 dark:border-neutral-600/60
-                        text-neutral-900 dark:text-neutral-100
-                        focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
-                        backdrop-blur-sm transition-all duration-200
-                        hover:border-purple-400/50 dark:hover:border-purple-500/50
-                        shadow-sm hover:shadow-md
-                      "
-                      value={frequency}
-                      onChange={(e) => setFrequency(e.target.value as Frequency)}
-                    >
-                      {FREQUENCIES.map((f) => (
-                        <option key={f} value={f} className="capitalize bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{f}</option>
-                      ))}
-                    </select>
-                    {/* Custom dropdown arrow */}
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <featureIcons.chevronUp className="w-4 h-4 text-neutral-500 dark:text-neutral-400 rotate-180" />
-                    </div>
-                  </div>
+                  <CustomSelect
+                    label="Frequency"
+                    options={FREQUENCIES.map(f => ({
+                      value: f,
+                      label: f.charAt(0).toUpperCase() + f.slice(1)
+                    }))}
+                    value={frequency}
+                    onChange={(value) => setFrequency(value as Frequency)}
+                    placeholder="Select frequency"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Category
-                  </label>
-                  <div className="relative">
-                    <select
-                      className="
-                        w-full rounded-xl px-4 py-3 text-sm appearance-none cursor-pointer
-                        bg-white/90 dark:bg-neutral-800/90
-                        border border-neutral-300/60 dark:border-neutral-600/60
-                        text-neutral-900 dark:text-neutral-100
-                        focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50
-                        backdrop-blur-sm transition-all duration-200
-                        hover:border-purple-400/50 dark:hover:border-purple-500/50
-                        shadow-sm hover:shadow-md
-                      "
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                    >
-                      {categories.map((c) => (
-                        <option key={c} value={c} className="bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100">{c}</option>
-                      ))}
-                    </select>
-                    {/* Custom dropdown arrow */}
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <featureIcons.chevronUp className="w-4 h-4 text-neutral-500 dark:text-neutral-400 rotate-180" />
-                    </div>
-                  </div>
+                  <CustomSelect
+                    label="Category"
+                    options={categories.map(c => ({
+                      value: c,
+                      label: c
+                    }))}
+                    value={category}
+                    onChange={setCategory}
+                    placeholder="Select category"
+                  />
                 </div>
               </div>
 

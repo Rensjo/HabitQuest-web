@@ -15,15 +15,22 @@ export function AppBackground({ children }: AppBackgroundProps) {
         <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-br from-amber-400/20 to-orange-600/20 rounded-full blur-3xl transform translate-y-1/2"></div>
       </div>
       
-      {/* Grid Pattern Overlay - visible in both themes */}
+      {/* Grid Pattern Overlay - visible in both themes with subtle glow */}
       <div className="absolute inset-0">
+        {/* Main dot pattern with glow effect */}
         <div className="w-full h-full opacity-[0.4] dark:opacity-[0.4]" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(100,116,139,0.8) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(100,116,139,0.8) 1px, rgba(100,116,139,0.1) 2px, transparent 3px)`,
           backgroundSize: '24px 24px'
         }}></div>
+        {/* Secondary smaller dots with softer glow */}
         <div className="w-full h-full opacity-[0.2] dark:opacity-[0.2]" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(148,163,184,0.6) 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(148,163,184,0.6) 1px, rgba(148,163,184,0.08) 2px, transparent 3px)`,
           backgroundSize: '18px 18px'
+        }}></div>
+        {/* Accent glow layer for enhanced depth */}
+        <div className="w-full h-full opacity-[0.15] dark:opacity-[0.1]" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(59,130,246,0.3) 1px, rgba(59,130,246,0.05) 3px, transparent 4px)`,
+          backgroundSize: '36px 36px'
         }}></div>
       </div>
 

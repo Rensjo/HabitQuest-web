@@ -19,6 +19,7 @@ interface ModalSystemProps {
   shop: any[];
   inventory: any[];
   points: number;
+  onEditReward: (id: string) => void;
   onDeleteReward: (id: string) => void;
   onRedeemReward: (reward: any) => void;
   onAddReward: () => void;
@@ -31,6 +32,7 @@ interface ModalSystemProps {
   habitStats: any;
   totalXP: number;
   level: number;
+  goals: any;
   
   // Sound effects
   playButtonClick: () => void;
@@ -48,6 +50,7 @@ export function ModalSystem({
   shop,
   inventory,
   points,
+  onEditReward,
   onDeleteReward,
   onRedeemReward,
   onAddReward,
@@ -60,6 +63,7 @@ export function ModalSystem({
   habitStats,
   totalXP,
   level,
+  goals,
   playButtonClick
 }: ModalSystemProps) {
   return (
@@ -73,6 +77,7 @@ export function ModalSystem({
           shop={shop}
           inventory={inventory}
           points={points}
+          onEditReward={onEditReward}
           onDeleteReward={onDeleteReward}
           onRedeemReward={onRedeemReward}
         />
@@ -102,6 +107,8 @@ export function ModalSystem({
         dayInsights={dayInsights}
         selectedDate={selectedDate}
         getPeriodKey={getPeriodKey}
+        goals={goals}
+        inventory={inventory}
       />
 
       {/* Settings Modal */}
@@ -118,7 +125,6 @@ export function ModalSystem({
             onBackgroundMusicEnabledChange={() => {}}
             onSoundEffectsVolumeChange={() => {}}
             onBackgroundMusicVolumeChange={() => {}}
-            playButtonClick={playButtonClick}
           />
         )}
       </AnimatePresence>

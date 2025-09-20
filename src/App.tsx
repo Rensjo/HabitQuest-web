@@ -5,7 +5,10 @@ import React, { useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Import extracted components
-import { AddHabitModal, AddRewardModal, AddCategoryModal } from "./components/modals";
+import { AddHabitModal, AddRewardModal, AddCategoryModal, UncategorizedHabitsModal } from "./components/modals";
+import { EditRewardModal } from "./components/modals/EditRewardModal";
+import { DeleteRewardModal } from "./components/modals/DeleteRewardModal";
+import { PROTECTED_FALLBACK_CATEGORY } from "./constants";
 import { SettingsModal } from "./components/modals/SettingsModal";
 import { useAppState } from "./hooks/useAppState";
 import { featureIcons } from "./utils/icons";
@@ -65,6 +68,10 @@ function HabitGoalTrackerV3() {
     showAddHabit,
     showAddReward,
     showAddCategory,
+    showUncategorizedHabits,
+    showEditReward,
+    showDeleteReward,
+    selectedReward,
     
     // Notification state
     showLevelUp,
@@ -106,13 +113,23 @@ function HabitGoalTrackerV3() {
     handleHabitComplete,
     handleRedeemReward,
     deleteHabit,
+    addHabit,
+    addReward,
+    editReward,
     deleteReward,
+    addCategory,
+    deleteCategory,
+    editHabit,
     getPeriodKeyWrapper,
     
     // Modal state setters
     setShowAddHabit,
     setShowAddReward,
-    setShowAddCategory
+    setShowAddCategory,
+    setShowUncategorizedHabits,
+    setShowEditReward,
+    setShowDeleteReward,
+    setSelectedReward
   } = useAppState();
 
   // -------------------------------------------------------------------
@@ -168,6 +185,10 @@ function HabitGoalTrackerV3() {
     setShowAddCategory(true);
   }, [setShowAddCategory]);
 
+  const handleDeleteCategory = useCallback((categoryName: string) => {
+    deleteCategory(categoryName);
+  }, [deleteCategory]);
+
   const handleSetGoals = useCallback((newGoals: any) => {
     setGoals(newGoals);
   }, [setGoals]);
@@ -211,52 +232,85 @@ function HabitGoalTrackerV3() {
   }, [setShowAddCategory]);
 
   // Memoized habit save handlers
-  const handleHabitSave = useCallback((_h: any) => {
-    // addHabit(h); // TODO: Implement when addHabit is available
+  const handleHabitSave = useCallback((h: any) => {
+    addHabit(h);
     setShowAddHabit(false);
-  }, [setShowAddHabit]);
+  }, [addHabit, setShowAddHabit]);
 
-  const handleRewardSave = useCallback((_payload: any) => {
-    // addReward(payload.name, payload.cost); // TODO: Implement when addReward is available
+  const handleRewardSave = useCallback((payload: any) => {
+    addReward(payload.name, payload.cost);
     setShowAddReward(false);
-  }, [setShowAddReward]);
+  }, [addReward, setShowAddReward]);
 
-  const handleCategorySave = useCallback((_data: any) => {
-    // addCategory(name, target); // TODO: Implement when addCategory is available
+  const handleCategorySave = useCallback((data: { name: string; target: number }) => {
+    addCategory(data.name, data.target);
     setShowAddCategory(false);
-  }, [setShowAddCategory]);
+  }, [addCategory, setShowAddCategory]);
+
+  // Reward edit/delete handlers
+  const handleEditRewardClick = useCallback((rewardId: string) => {
+    const reward = shop.find(r => r.id === rewardId);
+    if (reward) {
+      setSelectedReward(reward);
+      setShowEditReward(true);
+    }
+  }, [shop, setSelectedReward, setShowEditReward]);
+
+  const handleEditRewardSave = useCallback((updates: any) => {
+    if (selectedReward) {
+      editReward(selectedReward.id, updates);
+      setShowEditReward(false);
+      setSelectedReward(null);
+    }
+  }, [selectedReward, editReward, setShowEditReward, setSelectedReward]);
+
+  const handleDeleteRewardClick = useCallback((rewardId: string) => {
+    const reward = shop.find(r => r.id === rewardId);
+    if (reward) {
+      setSelectedReward(reward);
+      setShowDeleteReward(true);
+    }
+  }, [shop, setSelectedReward, setShowDeleteReward]);
+
+  const handleDeleteRewardConfirm = useCallback(() => {
+    if (selectedReward) {
+      deleteReward(selectedReward.id);
+      setShowDeleteReward(false);
+      setSelectedReward(null);
+    }
+  }, [selectedReward, deleteReward, setShowDeleteReward, setSelectedReward]);
 
   // Memoized features array to prevent recreation on every render
   const features = useMemo(() => [
     {
-      icon: "📅",
-      title: "Calendar Revamp",
-      description: "Sun–Sat headers for quick scanning, click any date to view & complete habits for that day, and period keys now follow your selected date so daily/monthly resets are crystal-clear."
+      icon: "📊",
+      title: "Analytics Dashboard Overhaul",
+      description: "Completely redesigned analytics with tabbed navigation, yearly overviews, monthly deep dives, weekly comparisons, and daily performance tracking with visual charts and progress indicators."
     },
     {
-      icon: "🆕",
-      title: "Custom Categories",
-      description: "Add your own categories with personalized XP targets, instantly available in both the goal tracker and Add Habit modal."
+      icon: "🗓️",
+      title: "Historical Data Navigation",
+      description: "Navigate through any month and year to view historical analytics. Track your progress over time with comprehensive year/month selectors and trend analysis."
     },
     {
-      icon: "📦",
-      title: "Enhanced Inventory",
-      description: "Your redeemed rewards are now displayed in a beautiful grid layout with improved visual design and better organization."
+      icon: "📈",
+      title: "Visual Progress Charts",
+      description: "Beautiful animated charts showing monthly XP progression, daily completion rates, category performance with color-coded indicators, and achievement tracking with visual progress bars."
     },
     {
-      icon: "🔁",
-      title: "Smart Habit Types",
-      description: "Recurring habits repeat every period, while Specific habits only show on their set date/month/year for better flexibility."
+      icon: "🎯",
+      title: "Advanced Target Tracking",
+      description: "Monitor XP goal progress per category with visual indicators, completion percentages, and achievement badges. See exactly how close you are to meeting your monthly targets."
     },
     {
-      icon: "✨",
-      title: "UI Polish",
-      description: "Motion-based progress bars, smoother calendar hover/tap micro-interactions, animated layout shifts, and subtle spacing refinements for a more balanced look."
+      icon: "🔥",
+      title: "Comprehensive Streak Analysis",
+      description: "Individual habit streak tracking with detailed breakdowns, weekly performance comparisons showing improvement trends, and daily habit completion statistics."
     },
     {
-      icon: "🎵",
-      title: "Audio Experience",
-      description: "Enhanced sound system with better volume controls, improved toggle alignment, and persistent audio settings for a more immersive experience."
+      icon: "🛒",
+      title: "Reward Purchase Analytics",
+      description: "Track your reward spending patterns with monthly purchase history, point expenditure analysis, and recent purchase summaries for better budget management."
     }
   ], []);
 
@@ -311,8 +365,10 @@ function HabitGoalTrackerV3() {
           visibleHabits={visibleHabits}
           selectedDate={selectedDate}
           activeFreq={activeFreq}
+          categories={categories}
           onHabitComplete={handleHabitComplete}
           onHabitDelete={deleteHabit}
+          onHabitEdit={editHabit}
           getPeriodKey={getPeriodKeyWrapper}
         />
 
@@ -322,8 +378,11 @@ function HabitGoalTrackerV3() {
           categoryXP={categoryXP}
           goals={goals}
           selectedDate={selectedDate}
+          habits={habits}
           onAddCategory={handleAddCategoryClick}
+          onDeleteCategory={handleDeleteCategory}
           onSetGoals={handleSetGoals}
+          onShowUncategorizedHabits={() => setShowUncategorizedHabits(true)}
         />
         
         {/* Rewards Shop Section */}
@@ -332,7 +391,8 @@ function HabitGoalTrackerV3() {
           inventory={inventory}
           points={points}
           onOpenShop={handleOpenShop}
-          onDeleteReward={deleteReward}
+          onEditReward={handleEditRewardClick}
+          onDeleteReward={handleDeleteRewardClick}
           onRedeemReward={handleRedeemReward}
         />
 
@@ -364,10 +424,10 @@ function HabitGoalTrackerV3() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-300 dark:via-purple-300 dark:to-indigo-300 bg-clip-text text-transparent">
-                  What's New in v3.2.0
+                  What's New in v4.1.2.0
                 </h2>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                  Exciting updates and improvements to enhance your habit tracking experience
+                  Major analytics enhancement and comprehensive dashboard improvements
                 </p>
               </div>
             </motion.div>
@@ -491,6 +551,7 @@ function HabitGoalTrackerV3() {
         shop={shop}
         inventory={inventory}
         points={points}
+        onEditReward={handleEditRewardClick}
         onDeleteReward={deleteReward}
         onRedeemReward={handleRedeemReward}
         onAddReward={() => setShowAddReward(true)}
@@ -503,6 +564,7 @@ function HabitGoalTrackerV3() {
         habitStats={habitStats}
         totalXP={totalXP}
         level={level}
+        goals={goals}
         playButtonClick={playButtonClick}
       />
       
@@ -533,6 +595,18 @@ function HabitGoalTrackerV3() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showUncategorizedHabits && (
+          <UncategorizedHabitsModal
+            habits={habits.filter(h => h.category === PROTECTED_FALLBACK_CATEGORY)}
+            categories={categories}
+            onClose={() => setShowUncategorizedHabits(false)}
+            onEditHabit={(habit) => editHabit(habit.id, habit)}
+            onMoveHabit={(habitId, categoryId) => editHabit(habitId, { category: categoryId })}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Settings Panel */}
       <SettingsModal
         isOpen={activeSettings}
@@ -546,6 +620,37 @@ function HabitGoalTrackerV3() {
         onSoundEffectsVolumeChange={setSoundEffectsVolume}
         onBackgroundMusicVolumeChange={setBackgroundMusicVolume}
       />
+
+      {/* Reward Modals */}
+      {showEditReward && selectedReward && (
+        <EditRewardModal
+          reward={selectedReward}
+          onClose={() => {
+            setShowEditReward(false);
+            setSelectedReward(null);
+          }}
+          onSave={(updates) => {
+            editReward(selectedReward.id, updates);
+            setShowEditReward(false);
+            setSelectedReward(null);
+          }}
+        />
+      )}
+
+      {showDeleteReward && selectedReward && (
+        <DeleteRewardModal
+          reward={selectedReward}
+          onClose={() => {
+            setShowDeleteReward(false);
+            setSelectedReward(null);
+          }}
+          onConfirm={() => {
+            deleteReward(selectedReward.id);
+            setShowDeleteReward(false);
+            setSelectedReward(null);
+          }}
+        />
+      )}
 
       {/* Notification System */}
       <NotificationSystem

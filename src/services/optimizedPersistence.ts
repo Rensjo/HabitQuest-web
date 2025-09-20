@@ -73,8 +73,8 @@ class OptimizedPersistenceManager {
   private batchQueue: BatchOperation[] = [];
   private saveQueue: Map<string, any> = new Map();
   private isProcessing = false;
-  private batchTimer: NodeJS.Timeout | null = null;
-  private version = '3.2.0';
+  private batchTimer: number | null = null;
+  private version = '4.1.2.0';
 
   constructor() {
     this.initializeBatchProcessing();

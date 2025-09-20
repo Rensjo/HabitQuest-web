@@ -13,6 +13,7 @@ export { GlassCard } from './GlassCard';
 export { AnimatedStats } from './AnimatedStats';
 export { SoundButton } from './SoundButton';
 export { Button } from './Button';
+export { CustomSelect } from './CustomSelect';
 
 interface EnhancedButtonProps {
   children: React.ReactNode;

@@ -123,10 +123,38 @@ export function sameDay(a: Date, b: Date): boolean {
 // ================================================================================================
 
 /**
- * Calculate level from total XP using square root formula
+ * Calculate XP required for a specific level
+ * Level 1->2: 100 XP, Level 2->3: 150 XP, Level 3->4: 200 XP, etc.
+ */
+export function getXPRequiredForLevel(level: number): number {
+  if (level <= 1) return 0;
+  
+  let totalXP = 0;
+  for (let i = 2; i <= level; i++) {
+    totalXP += 100 + (i - 2) * 50; // 100, 150, 200, 250, etc.
+  }
+  return totalXP;
+}
+
+/**
+ * Calculate current level from total XP using progressive requirement system
  */
 export function getCurrentLevel(totalXP: number): number {
-  return Math.floor(Math.sqrt(totalXP / 100)) + 1;
+  if (totalXP < 100) return 1;
+  
+  let level = 1;
+  let xpAccumulated = 0;
+  
+  while (true) {
+    const xpForNextLevel = 100 + (level - 1) * 50;
+    if (xpAccumulated + xpForNextLevel > totalXP) {
+      break;
+    }
+    xpAccumulated += xpForNextLevel;
+    level++;
+  }
+  
+  return level;
 }
 
 /**
@@ -134,9 +162,12 @@ export function getCurrentLevel(totalXP: number): number {
  */
 export function getLevelProgress(totalXP: number): number {
   const currentLevel = getCurrentLevel(totalXP);
-  const currentLevelXP = Math.pow(currentLevel - 1, 2) * 100;
-  const nextLevelXP = Math.pow(currentLevel, 2) * 100;
-  return Math.round(((totalXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100);
+  const currentLevelXP = getXPRequiredForLevel(currentLevel);
+  const nextLevelXP = getXPRequiredForLevel(currentLevel + 1);
+  const xpInCurrentLevel = totalXP - currentLevelXP;
+  const xpNeededForLevel = nextLevelXP - currentLevelXP;
+  
+  return Math.round((xpInCurrentLevel / xpNeededForLevel) * 100);
 }
 
 /**
@@ -144,7 +175,7 @@ export function getLevelProgress(totalXP: number): number {
  */
 export function getXPToNextLevel(totalXP: number): number {
   const currentLevel = getCurrentLevel(totalXP);
-  const nextLevelXP = Math.pow(currentLevel, 2) * 100;
+  const nextLevelXP = getXPRequiredForLevel(currentLevel + 1);
   return nextLevelXP - totalXP;
 }
 

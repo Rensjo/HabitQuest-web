@@ -1,15 +1,20 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { featureIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 import { getCategoryColorTheme } from '../../utils/categoryColors';
+import { DeleteCategoryModal } from '../modals/DeleteCategoryModal';
+import { PROTECTED_FALLBACK_CATEGORY } from '../../constants';
 interface GoalTrackerProps {
   categories: string[];
   categoryXP: Record<string, number>;
   goals: Record<string, { monthlyTargetXP: number }>;
   selectedDate: Date;
+  habits: Array<{ id: string; category: string; title: string }>;
   onAddCategory: () => void;
+  onDeleteCategory: (categoryName: string) => void;
   onSetGoals: (goals: Record<string, { monthlyTargetXP: number }>) => void;
+  onShowUncategorizedHabits?: () => void;
 }
 
 export const GoalTracker: React.FC<GoalTrackerProps> = ({
@@ -17,10 +22,33 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
   categoryXP,
   goals,
   selectedDate,
+  habits,
   onAddCategory,
-  onSetGoals
+  onDeleteCategory,
+  onSetGoals,
+  onShowUncategorizedHabits
 }) => {
   const { playButtonClick, playHover } = useSoundEffectsOnly();
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (categoryName: string) => {
+    setCategoryToDelete(categoryName);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (categoryToDelete) {
+      onDeleteCategory(categoryToDelete);
+      setCategoryToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setCategoryToDelete(null);
+  };
+
+  const getCategoryHabitCount = (categoryName: string) => {
+    return habits.filter(habit => habit.category === categoryName).length;
+  };
 
   return (
     <motion.div 
@@ -35,8 +63,8 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 border border-emerald-400/30 dark:border-emerald-400/20">
                 <featureIcons.target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -49,19 +77,69 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
               Track your XP progress across different life areas for {selectedDate.toLocaleString(undefined, { month: "long" })} - Two Column Layout
             </p>
           </div>
-          <motion.button
-            onClick={() => {
-              onAddCategory();
-              playButtonClick();
-            }}
-            className="
-              relative overflow-hidden rounded-3xl px-5 py-2.5
-              bg-gradient-to-r from-emerald-500 to-cyan-600
-              backdrop-blur-md
-              border border-emerald-300/30 dark:border-0 
-              text-white font-semibold text-sm
-              shadow-xl shadow-emerald-500/30 dark:shadow-emerald-500/25
-              transition-all duration-100
+          
+          <div className="flex items-center gap-3">
+            {/* Uncategorized Habits Button - Show only when there are uncategorized habits */}
+            {(() => {
+              const uncategorizedHabits = habits.filter(habit => habit.category === PROTECTED_FALLBACK_CATEGORY);
+              const uncategorizedCount = uncategorizedHabits.length;
+              
+              return uncategorizedCount > 0 ? (
+                <motion.button
+                  onClick={() => {
+                    onShowUncategorizedHabits?.();
+                    playButtonClick();
+                  }}
+                  className="
+                    relative overflow-hidden rounded-3xl px-5 py-2.5
+                    bg-gradient-to-r from-amber-500 to-orange-600
+                    backdrop-blur-md
+                    border border-amber-300/30 dark:border-0 
+                    text-white font-semibold text-sm
+                    shadow-xl shadow-amber-500/30 dark:shadow-amber-500/25
+                    transition-all duration-100
+                  "
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2,
+                    boxShadow: "0 20px 25px -5px rgba(245, 158, 11, 0.4), 0 10px 10px -5px rgba(245, 158, 11, 0.2)",
+                    transition: { duration: 0.1, ease: "easeOut" }
+                  }}
+                  whileTap={{ scale: 0.95, y: 0 }}
+                  onMouseEnter={() => playHover()}
+                >
+                  {/* Gradient Background Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-600 opacity-95"></div>
+                  
+                  {/* Floating Gradient Orb */}
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-yellow-400/40 to-amber-400/40 dark:from-yellow-400/30 dark:to-amber-400/30 rounded-full blur-lg"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center gap-2">
+                    <featureIcons.info className="w-4 h-4 drop-shadow-sm" />
+                    <span>Uncategorized ({uncategorizedCount})</span>
+                  </div>
+                </motion.button>
+              ) : null;
+            })()}
+            
+            {/* Add Category Button */}
+            <motion.button
+              onClick={() => {
+                onAddCategory();
+                playButtonClick();
+              }}
+              className="
+                relative overflow-hidden rounded-3xl px-5 py-2.5
+                bg-gradient-to-r from-emerald-500 to-cyan-600
+                backdrop-blur-md
+                border border-emerald-300/30 dark:border-0 
+                text-white font-semibold text-sm
+                shadow-xl shadow-emerald-500/30 dark:shadow-emerald-500/25
+                transition-all duration-100
             "
             whileHover={{ 
               scale: 1.05, 
@@ -84,6 +162,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
               Add Category
             </div>
           </motion.button>
+          </div>
         </div>
       </motion.div>
 
@@ -95,7 +174,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, staggerChildren: 0.1 }}
         >
-          {categories.map((c, index) => {
+          {categories.filter(c => c !== PROTECTED_FALLBACK_CATEGORY).map((c, index) => {
             const earned = categoryXP[c] || 0;
             const target = goals[c]?.monthlyTargetXP || 200;
             const pct = Math.min(100, Math.round((earned / Math.max(1, target)) * 100));
@@ -135,7 +214,52 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                     </div>
                     <div className="font-semibold text-sm sm:text-base text-neutral-900 dark:text-neutral-100 truncate">{c}</div>
                   </div>
-                  <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium">{pct}%</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-medium">{pct}%</div>
+                    {/* Protected category indicator or delete button */}
+                    {c === PROTECTED_FALLBACK_CATEGORY ? (
+                      <motion.div
+                        className="
+                          opacity-0 group-hover:opacity-100
+                          absolute -top-2 -right-2 z-20
+                          w-7 h-7 rounded-full
+                          bg-blue-500/90
+                          text-white
+                          flex items-center justify-center
+                          transition-all duration-200
+                          shadow-lg
+                          border-2 border-white dark:border-neutral-900
+                        "
+                        title="Protected category - cannot be deleted"
+                      >
+                        <featureIcons.checkCircle className="w-3.5 h-3.5" />
+                      </motion.div>
+                    ) : (
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playButtonClick();
+                          handleDeleteClick(c);
+                        }}
+                        className="
+                          opacity-0 group-hover:opacity-100
+                          absolute -top-2 -right-2 z-20
+                          w-7 h-7 rounded-full
+                          bg-red-500/90 hover:bg-red-600
+                          text-white
+                          flex items-center justify-center
+                          transition-all duration-200
+                          shadow-lg hover:shadow-xl
+                          border-2 border-white dark:border-neutral-900
+                        "
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title={`Delete ${c} category`}
+                      >
+                        <featureIcons.x className="w-3.5 h-3.5" />
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
                 
                 {/* XP Progress */}
@@ -190,6 +314,18 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
           })}
         </motion.div>
       </div>
+
+      {/* Delete Category Modal */}
+      <AnimatePresence>
+        {categoryToDelete && (
+          <DeleteCategoryModal
+            categoryName={categoryToDelete}
+            habitCount={getCategoryHabitCount(categoryToDelete)}
+            onClose={handleDeleteCancel}
+            onConfirm={handleDeleteConfirm}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

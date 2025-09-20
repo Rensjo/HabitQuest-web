@@ -1,0 +1,105 @@
+name: Development Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Quick validation build (fastest platforms)
+  quick-build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev || sudo apt-get install -y libwebkit2gtk-4.0-dev
+
+      - name: Install Tauri CLI
+        run: |
+          echo "Installing Tauri CLI via cargo..."
+          cargo install tauri-cli --version ^2.0
+          echo "Tauri CLI installed, checking version..."
+        shell: bash
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm audit fix || true
+
+      - name: Lint and type check
+        run: |
+          npm run lint || true
+          npx tsc --noEmit --skipLibCheck
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build Tauri (debug mode)
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cd src-tauri
+          cargo build
+
+      - name: Run frontend tests (if available)
+        run: npm test || true
+        continue-on-error: true
+
+  # Security and dependency audit
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate || true
+
+      - name: Run Rust security audit
+        run: |
+          cargo install cargo-audit
+          cd src-tauri
+          cargo audit || true
+
+      - name: Check for outdated dependencies
+        run: |
+          npm outdated || true
+          cd src-tauri
+          cargo outdated || true
+        continue-on-error: true

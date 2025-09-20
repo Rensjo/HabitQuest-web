@@ -14,10 +14,14 @@ import {
   getPeriodKey, 
   inferDateFromKey, 
   sameDay,
-  habitVisibleOnDate
+  habitVisibleOnDate,
+  getCurrentLevel,
+  getLevelProgress,
+  getXPToNextLevel
 } from "../../utils";
 import { 
-  DEFAULT_CATEGORIES
+  DEFAULT_CATEGORIES,
+  PROTECTED_FALLBACK_CATEGORY
 } from "../../constants";
 import { 
   loadData, 
@@ -45,18 +49,18 @@ export function useHabitManagement() {
   );
   const [shop, setShop] = useState<Reward[]>(saved?.shop ?? defaultRewards);
   const [inventory, setInventory] = useState<any[]>(saved?.inventory ?? []);
-  const [categories, setCategories] = useState<string[]>(
-    saved?.categories ?? (saved?.goals ? Object.keys(saved.goals) : [...DEFAULT_CATEGORIES])
-  );
+  const [categories, setCategories] = useState<string[]>(() => {
+    const baseCategories = saved?.categories ?? (saved?.goals ? Object.keys(saved.goals) : [...DEFAULT_CATEGORIES]);
+    // Always ensure the protected fallback category exists
+    return baseCategories.includes(PROTECTED_FALLBACK_CATEGORY) 
+      ? baseCategories 
+      : [...baseCategories, PROTECTED_FALLBACK_CATEGORY];
+  });
 
   // Derived level metrics
-  const level = useMemo(() => Math.floor(Math.sqrt(totalXP) / 2) + 1, [totalXP]);
-  const levelProgress = useMemo(() => {
-    const currentLevelXP = Math.pow((level - 1) * 2, 2);
-    const nextLevelXP = Math.pow(level * 2, 2);
-    const span = nextLevelXP - currentLevelXP;
-    return Math.min(100, Math.round(((totalXP - currentLevelXP) / span) * 100));
-  }, [totalXP, level]);
+  const level = useMemo(() => getCurrentLevel(totalXP), [totalXP]);
+  const levelProgress = useMemo(() => getLevelProgress(totalXP), [totalXP]);
+  const xpToNext = useMemo(() => getXPToNextLevel(totalXP), [totalXP]);
 
   // Calculate overall user streak (consecutive days with at least one habit completed)
   const overallStreak = useMemo(() => {
@@ -177,6 +181,12 @@ export function useHabitManagement() {
     setHabits((prev) => prev.filter((h) => h.id !== id));
   }
 
+  function editHabit(id: string, updates: Partial<Habit>): void {
+    setHabits((prev) => prev.map((habit) => 
+      habit.id === id ? { ...habit, ...updates } : habit
+    ));
+  }
+
   // Category XP calculation
   function getCategoryXP(selectedDate: Date): Record<string, number> {
     const currentYear = selectedDate.getFullYear();
@@ -221,6 +231,12 @@ export function useHabitManagement() {
     setShop((s) => s.filter((r) => r.id !== id));
   }
 
+  function editReward(id: string, updates: Partial<Reward>): void {
+    setShop((prev) => prev.map((reward) => 
+      reward.id === id ? { ...reward, ...updates } : reward
+    ));
+  }
+
   // Categories management
   function addCategory(name: string, target: number): void {
     const clean = name.trim();
@@ -228,6 +244,36 @@ export function useHabitManagement() {
     const norm = clean.toUpperCase();
     setCategories((prev) => (prev.includes(norm) ? prev : [...prev, norm]));
     setGoals((g) => ({ ...g, [norm]: { monthlyTargetXP: Math.max(0, Number(target || 0)) } }));
+  }
+
+  function deleteCategory(categoryName: string): void {
+    const norm = categoryName.trim().toUpperCase();
+    
+    // Prevent deletion of the protected fallback category
+    if (norm === PROTECTED_FALLBACK_CATEGORY) {
+      console.warn(`Cannot delete protected category: ${PROTECTED_FALLBACK_CATEGORY}`);
+      return;
+    }
+    
+    // Remove category from categories list
+    setCategories((prev) => prev.filter((c) => c !== norm));
+    
+    // Remove category goals
+    setGoals((g) => {
+      const { [norm]: removed, ...rest } = g;
+      return rest;
+    });
+    
+    // Move all habits from deleted category to the protected fallback category
+    setHabits((prev) => prev.map((habit) => 
+      habit.category === norm ? { ...habit, category: PROTECTED_FALLBACK_CATEGORY } : habit
+    ));
+    
+    // Ensure the protected fallback category has a goal if habits are moved to it
+    setGoals((g) => ({
+      ...g,
+      [PROTECTED_FALLBACK_CATEGORY]: g[PROTECTED_FALLBACK_CATEGORY] || { monthlyTargetXP: 100 }
+    }));
   }
 
   // Persistence
@@ -246,6 +292,7 @@ export function useHabitManagement() {
     categories,
     level,
     levelProgress,
+    xpToNext,
     overallStreak,
     
     // State setters
@@ -262,11 +309,14 @@ export function useHabitManagement() {
     toggleComplete,
     addHabit,
     deleteHabit,
+    editHabit,
     getCategoryXP,
     redeemReward,
     addReward,
+    editReward,
     deleteReward,
     addCategory,
+    deleteCategory,
     saveAppData
   };
 }

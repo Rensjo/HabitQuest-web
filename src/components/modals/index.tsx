@@ -516,6 +516,7 @@ export { DayInsightsModal } from './DayInsightsModal';
 export { AnalyticsModal } from './AnalyticsModal';
 export { SettingsModal } from './SettingsModal';
 export { ModalSystem } from './ModalSystem';
+export { DeleteCategoryModal } from './DeleteCategoryModal';
 
 export function AddCategoryModal({
   onClose,

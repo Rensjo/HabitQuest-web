@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { featureIcons } from '../../utils/icons';
+import { featureIcons, actionIcons } from '../../utils/icons';
 import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 import { generateInventoryKey } from '../../utils/keyUtils';
+import { DeleteRewardConfirmModal } from '../modals';
 import type { Reward, InventoryItem } from '../../types';
 
 interface RewardsShopProps {
@@ -10,6 +11,7 @@ interface RewardsShopProps {
   inventory: InventoryItem[];
   points: number;
   onOpenShop: () => void;
+  onEditReward: (rewardId: string) => void;
   onDeleteReward: (rewardId: string) => void;
   onRedeemReward: (reward: Reward) => void;
 }
@@ -19,10 +21,28 @@ export const RewardsShop: React.FC<RewardsShopProps> = ({
   inventory,
   points,
   onOpenShop,
+  onEditReward,
   onDeleteReward,
   onRedeemReward
 }) => {
   const { playButtonClick, playHover } = useSoundEffectsOnly();
+  const [deletingReward, setDeletingReward] = useState<Reward | null>(null);
+
+  const handleDeleteReward = (reward: Reward) => {
+    playButtonClick();
+    setDeletingReward(reward);
+  };
+
+  const handleConfirmDeleteReward = () => {
+    if (deletingReward) {
+      onDeleteReward(deletingReward.id);
+      setDeletingReward(null);
+    }
+  };
+
+  const handleCancelDeleteReward = () => {
+    setDeletingReward(null);
+  };
 
   return (
     <motion.div 
@@ -98,29 +118,45 @@ export const RewardsShop: React.FC<RewardsShopProps> = ({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 + index * 0.1 }}
-            className="border border-neutral-300/50 dark:border-neutral-700/50 bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-4 flex flex-col gap-2"
+            className="group relative border border-neutral-300/50 dark:border-neutral-700/50 bg-neutral-100/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-2xl p-4 flex flex-col gap-2"
             whileHover={{ scale: 1.05, y: -2, transition: { duration: 0.1, ease: "easeOut" } }}
             onMouseEnter={() => playHover()}
             whileTap={{ scale: 0.95, y: 0 }}
           >
+            {/* Hover Action Buttons - Top Right Corner */}
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 flex gap-1.5">
+              <motion.button
+                onClick={() => {
+                  onEditReward(r.id);
+                  playButtonClick();
+                }}
+                onMouseEnter={() => playHover()}
+                className="w-8 h-8 rounded-full bg-blue-50/90 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-600/50 hover:bg-blue-100 dark:hover:bg-blue-800/60 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-all duration-150 shadow-sm backdrop-blur-sm"
+                title="Edit reward"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+              >
+                <actionIcons.edit className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                onClick={() => handleDeleteReward(r)}
+                onMouseEnter={() => playHover()}
+                className="w-8 h-8 rounded-full bg-red-50/90 dark:bg-red-900/50 border border-red-200 dark:border-red-600/50 hover:bg-red-100 dark:hover:bg-red-800/60 text-red-600 dark:text-red-400 flex items-center justify-center transition-all duration-150 shadow-sm backdrop-blur-sm"
+                title="Delete reward"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+              >
+                <actionIcons.delete className="w-4 h-4" />
+              </motion.button>
+            </div>
+
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="font-semibold">{r.name}</div>
                 <div className="text-amber-600 dark:text-amber-400 text-sm font-medium">Cost: {r.cost} pts</div>
               </div>
-              <motion.button
-                onClick={() => {
-                  onDeleteReward(r.id);
-                  playButtonClick();
-                }}
-                className="px-2 py-1 rounded-md text-xs border bg-red-500/20 border-red-500/40 hover:bg-red-500/30"
-                title="Delete reward"
-                whileHover={{ scale: 1.05, y: -1, transition: { duration: 0.1, ease: "easeOut" } }}
-                onMouseEnter={() => playHover()}
-                whileTap={{ scale: 0.95, y: 0 }}
-              >
-                Delete
-              </motion.button>
             </div>
             <motion.button
               onClick={() => {
@@ -249,6 +285,15 @@ export const RewardsShop: React.FC<RewardsShopProps> = ({
             </motion.div>
           )}
         </motion.div>
+      )}
+
+      {/* Delete Reward Confirmation Modal */}
+      {deletingReward && (
+        <DeleteRewardConfirmModal
+          reward={deletingReward}
+          onConfirm={handleConfirmDeleteReward}
+          onClose={handleCancelDeleteReward}
+        />
       )}
     </motion.div>
   );
