@@ -61,7 +61,6 @@ jobs:
       - name: Package artifacts
         run: |
           mkdir -p packages
-          cd src-tauri/target/${{ matrix.target }}/release/bundle
           
           # Determine architecture suffix
           if [[ "${{ matrix.target }}" == "aarch64-apple-darwin" ]]; then
@@ -70,15 +69,36 @@ jobs:
             ARCH="x64"
           fi
           
-          # Package DMG files
-          if [ -d "dmg" ]; then
-            cd dmg && zip -r "../../../../../packages/HabitQuest-macos-${ARCH}.zip" * && cd ..
+          # Create clean package directory
+          mkdir -p "temp-package"
+          
+          # Copy installation guide and readme
+          cp INSTALLATION-GUIDE.md temp-package/
+          cp README.md temp-package/
+          
+          # Package DMG files with clean structure
+          if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/dmg" ]; then
+            cd src-tauri/target/${{ matrix.target }}/release/bundle/dmg
+            # Copy only the DMG file (not the nested folder)
+            find . -name "*.dmg" -exec cp {} ../../../../../temp-package/ \;
+            cd ../../../../../
+            cd temp-package && zip -r "../packages/HabitQuest-macos-${ARCH}.zip" * && cd ..
+            rm -rf temp-package && mkdir -p temp-package
+            cp INSTALLATION-GUIDE.md temp-package/
+            cp README.md temp-package/
           fi
           
-          # Package .app bundles
-          if [ -d "macos" ]; then
-            cd macos && zip -r "../../../../../packages/HabitQuest-macos-${ARCH}-app.zip" * && cd ..
+          # Package .app bundles with clean structure
+          if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/macos" ]; then
+            cd src-tauri/target/${{ matrix.target }}/release/bundle/macos
+            # Copy only the .app bundle (not the nested folder)
+            find . -name "*.app" -exec cp -r {} ../../../../../temp-package/ \;
+            cd ../../../../../
+            cd temp-package && zip -r "../packages/HabitQuest-macos-${ARCH}-app.zip" * && cd ..
           fi
+          
+          # Clean up
+          rm -rf temp-package
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

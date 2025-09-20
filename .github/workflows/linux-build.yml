@@ -72,22 +72,43 @@ jobs:
     - name: Package artifacts
       run: |
         mkdir -p packages
-        cd src-tauri/target/${{ matrix.target }}/release/bundle
         
-        # Package AppImage
-        if [ -d "appimage" ]; then
-          cd appimage && zip -r "../../../../../../packages/HabitQuest-linux-x64.zip" * && cd ..
+        # Create clean package directory
+        mkdir -p temp-package
+        
+        # Copy installation guide and readme
+        cp INSTALLATION-GUIDE.md temp-package/
+        cp README.md temp-package/
+        
+        # Package AppImage with clean structure
+        if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/appimage" ]; then
+          # Copy only the AppImage file (not nested folders)
+          find src-tauri/target/${{ matrix.target }}/release/bundle/appimage -name "*.AppImage" -exec cp {} temp-package/ \;
+          cd temp-package && zip -r "../packages/HabitQuest-linux-x64.zip" * && cd ..
+          rm -rf temp-package && mkdir -p temp-package
+          cp INSTALLATION-GUIDE.md temp-package/
+          cp README.md temp-package/
         fi
         
-        # Package DEB
-        if [ -d "deb" ]; then
-          cd deb && zip -r "../../../../../../packages/HabitQuest-linux-x64-deb.zip" * && cd ..
+        # Package DEB with clean structure
+        if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/deb" ]; then
+          # Copy only the DEB file (not nested folders)
+          find src-tauri/target/${{ matrix.target }}/release/bundle/deb -name "*.deb" -exec cp {} temp-package/ \;
+          cd temp-package && zip -r "../packages/HabitQuest-linux-x64-deb.zip" * && cd ..
+          rm -rf temp-package && mkdir -p temp-package
+          cp INSTALLATION-GUIDE.md temp-package/
+          cp README.md temp-package/
         fi
         
-        # Package RPM (if available)
-        if [ -d "rpm" ]; then
-          cd rpm && zip -r "../../../../../../packages/HabitQuest-linux-x64-rpm.zip" * && cd ..
+        # Package RPM with clean structure (if available)
+        if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/rpm" ]; then
+          # Copy only the RPM file (not nested folders)
+          find src-tauri/target/${{ matrix.target }}/release/bundle/rpm -name "*.rpm" -exec cp {} temp-package/ \;
+          cd temp-package && zip -r "../packages/HabitQuest-linux-x64-rpm.zip" * && cd ..
         fi
+        
+        # Clean up
+        rm -rf temp-package
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

@@ -74,21 +74,35 @@ jobs:
     - name: Package artifacts
       run: |
         New-Item -ItemType Directory -Force -Path "packages"
-        Set-Location "src-tauri/target/${{ matrix.target }}/release/bundle"
+        New-Item -ItemType Directory -Force -Path "temp-package"
         
-        # Package MSI files
-        if (Test-Path "msi") {
-            Set-Location "msi"
-            Compress-Archive -Path "*" -DestinationPath "../../../../../../packages/HabitQuest-windows-x64-msi.zip"
+        # Copy installation guide and readme to temp package
+        Copy-Item "INSTALLATION-GUIDE.md" -Destination "temp-package/"
+        Copy-Item "README.md" -Destination "temp-package/"
+        
+        # Package MSI files with clean structure
+        if (Test-Path "src-tauri/target/${{ matrix.target }}/release/bundle/msi") {
+            # Copy only the MSI file (not nested folders)
+            Get-ChildItem "src-tauri/target/${{ matrix.target }}/release/bundle/msi" -Filter "*.msi" | Copy-Item -Destination "temp-package/"
+            Set-Location "temp-package"
+            Compress-Archive -Path "*" -DestinationPath "../packages/HabitQuest-windows-x64-msi.zip"
+            Set-Location ".."
+            Remove-Item "temp-package/*" -Recurse -Force
+            Copy-Item "INSTALLATION-GUIDE.md" -Destination "temp-package/"
+            Copy-Item "README.md" -Destination "temp-package/"
+        }
+        
+        # Package NSIS setup files with clean structure
+        if (Test-Path "src-tauri/target/${{ matrix.target }}/release/bundle/nsis") {
+            # Copy only the setup exe file (not nested folders) 
+            Get-ChildItem "src-tauri/target/${{ matrix.target }}/release/bundle/nsis" -Filter "*.exe" | Copy-Item -Destination "temp-package/"
+            Set-Location "temp-package"
+            Compress-Archive -Path "*" -DestinationPath "../packages/HabitQuest-windows-x64-setup.zip"
             Set-Location ".."
         }
         
-        # Package NSIS setup files
-        if (Test-Path "nsis") {
-            Set-Location "nsis" 
-            Compress-Archive -Path "*" -DestinationPath "../../../../../../packages/HabitQuest-windows-x64-setup.zip"
-            Set-Location ".."
-        }
+        # Clean up
+        Remove-Item "temp-package" -Recurse -Force
       shell: pwsh
         
     - name: Upload artifacts
