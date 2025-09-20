@@ -9,27 +9,22 @@ This directory contains platform-specific GitHub Actions workflows for building 
 **Purpose**: Build Linux packages (AppImage, DEB, RPM)
 
 **Artifacts Created:**
-- `HabitQuest-linux-x64.zip` - AppImage portable application
-- `HabitQuest-linux-x64-deb.zip` - DEB package for Debian/Ubuntu
-- `HabitQuest-linux-x64-rpm.zip` - RPM package (if available)
+- `HabitQuest-linux-x64.zip` - Complete Linux package (AppImage + DEB + RPM)
 
 ### 2. macOS DMG Build (`macos-build.yml`)
 **Trigger**: Pushes to main/develop, pull requests, manual dispatch
 **Purpose**: Build macOS packages (DMG, App bundles) for Intel and Apple Silicon
 
 **Artifacts Created:**
-- `HabitQuest-macos-arm64.zip` - DMG for Apple Silicon Macs
-- `HabitQuest-macos-arm64-app.zip` - App bundle for Apple Silicon
-- `HabitQuest-macos-x64.zip` - DMG for Intel Macs
-- `HabitQuest-macos-x64-app.zip` - App bundle for Intel Macs
+- `HabitQuest-macos-arm64.zip` - Complete macOS package for Apple Silicon (DMG + App bundle)
+- `HabitQuest-macos-x64.zip` - Complete macOS package for Intel (DMG + App bundle)
 
 ### 3. Windows MSI/NSIS Build (`windows-build.yml`)
 **Trigger**: Pushes to main/develop, pull requests, manual dispatch  
-**Purpose**: Build Windows installers (MSI, NSIS)
+**Purpose**: Build Windows installers (MSI, NSIS) and portable executable
 
 **Artifacts Created:**
-- `HabitQuest-windows-x64-msi.zip` - MSI installer package
-- `HabitQuest-windows-x64-setup.zip` - NSIS setup executable
+- `HabitQuest-windows-x64.zip` - Complete Windows package (MSI + NSIS + portable executable)
 
 ## Usage
 
@@ -58,18 +53,24 @@ After a successful build:
 ### Platform Installation
 
 **Windows:**
-- Extract `HabitQuest-windows-x64-msi.zip` → Run the `.msi` file (recommended)
-- Or extract `HabitQuest-windows-x64-setup.zip` → Run the `.exe` setup file
+- Extract `HabitQuest-windows-x64.zip` 
+- Choose your preferred option:
+  - Run the `.msi` file (recommended installer)
+  - Run the `.exe` setup file (alternative installer)
+  - Run `habitquest.exe` directly (portable, no installation required)
 
 **macOS:**
 - Extract `HabitQuest-macos-arm64.zip` (Apple Silicon) or `HabitQuest-macos-x64.zip` (Intel)
-- Open the `.dmg` file → Drag HabitQuest to Applications folder
-- Or extract the `-app.zip` version for direct app bundle
+- Choose your preferred option:
+  - Open the `.dmg` file → Drag HabitQuest to Applications folder
+  - Use the `.app` bundle directly (drag to Applications or run from anywhere)
 
 **Linux:**
-- Extract `HabitQuest-linux-x64.zip` → Run the `.AppImage` file (portable, no installation)
-- Or extract `HabitQuest-linux-x64-deb.zip` → Install with `sudo dpkg -i *.deb`
-- Or extract `HabitQuest-linux-x64-rpm.zip` → Install with `sudo rpm -i *.rpm`
+- Extract `HabitQuest-linux-x64.zip`
+- Choose your preferred option:
+  - Run the `.AppImage` file directly (portable, no installation: `chmod +x *.AppImage && ./HabitQuest.AppImage`)
+  - Install the `.deb` package: `sudo dpkg -i *.deb`
+  - Install the `.rpm` package: `sudo rpm -i *.rpm`
 
 ## Build Targets
 

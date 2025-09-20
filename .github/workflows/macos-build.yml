@@ -60,6 +60,8 @@ jobs:
 
       - name: Package artifacts
         run: |
+          # Store the current working directory
+          WORKSPACE_DIR=$(pwd)
           mkdir -p packages
           
           # Determine architecture suffix
@@ -69,36 +71,28 @@ jobs:
             ARCH="x64"
           fi
           
-          # Create clean package directory
-          mkdir -p "temp-package"
+          # Create single comprehensive macOS package
+          mkdir -p "temp-macos"
           
-          # Copy installation guide and readme
-          cp INSTALLATION-GUIDE.md temp-package/
-          cp README.md temp-package/
+          # Copy documentation files once
+          cp INSTALLATION-GUIDE.md temp-macos/
+          cp README.md temp-macos/
           
-          # Package DMG files with clean structure
+          # Copy DMG file if available
           if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/dmg" ]; then
-            cd src-tauri/target/${{ matrix.target }}/release/bundle/dmg
-            # Copy only the DMG file (not the nested folder)
-            find . -name "*.dmg" -exec cp {} ../../../../../temp-package/ \;
-            cd ../../../../../
-            cd temp-package && zip -r "../packages/HabitQuest-macos-${ARCH}.zip" * && cd ..
-            rm -rf temp-package && mkdir -p temp-package
-            cp INSTALLATION-GUIDE.md temp-package/
-            cp README.md temp-package/
+            find "src-tauri/target/${{ matrix.target }}/release/bundle/dmg" -name "*.dmg" -exec cp {} temp-macos/ \;
           fi
           
-          # Package .app bundles with clean structure
+          # Copy .app bundle if available
           if [ -d "src-tauri/target/${{ matrix.target }}/release/bundle/macos" ]; then
-            cd src-tauri/target/${{ matrix.target }}/release/bundle/macos
-            # Copy only the .app bundle (not the nested folder)
-            find . -name "*.app" -exec cp -r {} ../../../../../temp-package/ \;
-            cd ../../../../../
-            cd temp-package && zip -r "../packages/HabitQuest-macos-${ARCH}-app.zip" * && cd ..
+            find "src-tauri/target/${{ matrix.target }}/release/bundle/macos" -name "*.app" -exec cp -r {} temp-macos/ \;
           fi
+          
+          # Create single zip package
+          cd temp-macos && zip -r "../packages/HabitQuest-macos-${ARCH}.zip" * && cd "$WORKSPACE_DIR"
           
           # Clean up
-          rm -rf temp-package
+          rm -rf temp-macos
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
