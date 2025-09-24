@@ -32,11 +32,21 @@ jobs:
         
     - name: Install Tauri CLI
       run: |
-        echo "Installing Tauri CLI via cargo..."
-        cargo install tauri-cli --version ^2.0
+        echo "Installing Tauri CLI via npm (recommended for v2)..."
+        npm install -g @tauri-apps/cli@latest
         echo "Tauri CLI installed, checking version..."
-        $env:PATH += ";$env:USERPROFILE\.cargo\bin"
-        cargo tauri --version
+        npx tauri --version
+      shell: pwsh
+
+    - name: Debug environment
+      run: |
+        echo "Node version: $(node --version)"
+        echo "npm version: $(npm --version)"
+        echo "Rust version: $(rustc --version)"
+        echo "Cargo version: $(cargo --version)"
+        echo "Tauri CLI version: $(npx tauri --version)"
+        echo "Working directory: $(Get-Location)"
+        echo "Target: ${{ matrix.target }}"
       shell: pwsh
       
     - name: Install frontend dependencies
@@ -49,8 +59,26 @@ jobs:
         
     - name: Build Windows installer
       run: |
-        $env:PATH += ";$env:USERPROFILE\.cargo\bin"
-        cargo tauri build --target ${{ matrix.target }}
+        echo "Starting Tauri build for Windows target: ${{ matrix.target }}"
+        npx tauri build --target ${{ matrix.target }} --verbose
+      shell: pwsh
+      env:
+        RUST_BACKTRACE: 1
+
+    - name: Check build outputs (on failure)
+      if: failure()
+      run: |
+        echo "=== Build failed, checking logs and outputs ==="
+        if (Test-Path "src-tauri/target/") {
+            Get-ChildItem "src-tauri/target/" -Recurse -ErrorAction SilentlyContinue | Format-Table Name, Length, LastWriteTime
+        } else {
+            echo "No target directory found"
+        }
+        echo "=== Looking for log files ==="
+        Get-ChildItem -Path "." -Recurse -Filter "*.log" -ErrorAction SilentlyContinue | ForEach-Object { 
+            echo "=== Content of $($_.FullName) ==="
+            Get-Content $_.FullName -ErrorAction SilentlyContinue
+        }
       shell: pwsh
         
     - name: List build outputs
