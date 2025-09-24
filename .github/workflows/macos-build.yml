@@ -33,6 +33,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: ${{ runner.os }}-${{ matrix.target }}
+          cache-on-failure: true
 
       - name: Debug environment
         run: |
@@ -46,8 +48,13 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          # Install system dependencies for macOS builds
-          brew install cmake
+          # Check if cmake is already installed to avoid reinstall warnings
+          if ! command -v cmake &> /dev/null; then
+            echo "Installing cmake..."
+            brew install cmake
+          else
+            echo "cmake is already installed: $(cmake --version)"
+          fi
           
       - name: Install Rust dependencies
         run: |

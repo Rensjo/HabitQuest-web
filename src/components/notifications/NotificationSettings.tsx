@@ -6,12 +6,13 @@
  * UI component for configuring habit reminder and notification preferences
  * Part of the Settings page for managing notification behavior
  * 
- * @version 1.0.0
+ * @version 2.0.0
  */
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Bell, Clock, Zap, Shield, Volume2, VolumeX, Settings, Info, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, Clock, Zap, Shield, Volume2, VolumeX, Settings, Info, AlertTriangle, CheckCircle, XCircle, Play, Monitor, AlertCircle } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
 import type { HabitReminderConfig } from '../../hooks/useHabitReminders';
 import { NotificationPermissionManager, createPermissionInstructions } from '../../services/notificationPermissions';
 import type { NotificationPermissionStatus } from '../../services/notificationPermissions';
@@ -36,18 +37,21 @@ export default function NotificationSettings({
   const [isTestingNotification, setIsTestingNotification] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | null>(null);
   const [showPermissionHelp, setShowPermissionHelp] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const [backgroundServiceStatus, setBackgroundServiceStatus] = useState<'unknown' | 'running' | 'stopped'>('unknown');
 
   // Update local config when prop changes
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
 
-  // Check notification permissions on mount
+  // Check notification permissions and background service on mount
   useEffect(() => {
     checkPermissions();
+    checkBackgroundService();
   }, []);
 
-  const checkPermissions = async () => {
+  const checkPermissions = useCallback(async () => {
     try {
       const status = await NotificationPermissionManager.checkAndRequestPermissions();
       setPermissionStatus(status);
@@ -59,17 +63,46 @@ export default function NotificationSettings({
     } catch (error) {
       console.error('Failed to check notification permissions:', error);
     }
-  };
+  }, [localConfig.enabled]);
+
+  const checkBackgroundService = useCallback(async () => {
+    try {
+      // Check if background notifications are running using Tauri API
+      const isRunning = await invoke('is_background_service_running') as boolean;
+      setBackgroundServiceStatus(isRunning ? 'running' : 'stopped');
+    } catch (error) {
+      console.error('Failed to check background service:', error);
+      setBackgroundServiceStatus('unknown');
+    }
+  }, []);
+
+  const startBackgroundService = useCallback(async () => {
+    try {
+      // Start background service using Tauri API
+      await invoke('start_background_notifications');
+      setBackgroundServiceStatus('running');
+    } catch (error) {
+      console.error('Failed to start background service:', error);
+      setBackgroundServiceStatus('unknown');
+    }
+  }, []);
 
   // ================================================================================================
   // HANDLERS
   // ================================================================================================
 
-  const handleConfigChange = (key: keyof HabitReminderConfig, value: any) => {
+  const handleConfigChange = useCallback((key: keyof HabitReminderConfig, value: any) => {
     const newConfig = { ...localConfig, [key]: value };
     setLocalConfig(newConfig);
     onConfigChange({ [key]: value });
-  };
+    
+    // Auto-start background service when notifications are enabled
+    if (key === 'enabled' && value === true) {
+      startBackgroundService();
+    } else if (key === 'enabled' && value === false) {
+      setBackgroundServiceStatus('stopped');
+    }
+  }, [localConfig, onConfigChange, startBackgroundService]);
 
   const handleTimeRangeChange = (type: 'start' | 'end', hour: number) => {
     const newRange = {
@@ -103,13 +136,61 @@ export default function NotificationSettings({
     setTimeout(() => setIsTestingNotification(false), 2000);
   };
 
-  const handleEnableNotifications = async () => {
+  const handleEnableNotifications = useCallback(async () => {
     if (!localConfig.enabled) {
       // Check permissions before enabling
       await checkPermissions();
     }
-    handleConfigChange('enabled', !localConfig.enabled);
-  };
+    
+    const newValue = !localConfig.enabled;
+    handleConfigChange('enabled', newValue);
+  }, [localConfig.enabled, checkPermissions, handleConfigChange]);
+
+  // Memoized status display to prevent unnecessary re-renders
+  const backgroundServiceStatusDisplay = useMemo(() => {
+    if (!localConfig.enabled) {
+      return (
+        <div className="flex items-center gap-1 text-gray-500 text-sm">
+          <XCircle className="w-4 h-4" />
+          Disabled
+        </div>
+      );
+    }
+    
+    switch (backgroundServiceStatus) {
+      case 'running':
+        return (
+          <div className="flex items-center gap-1 text-green-400 text-sm">
+            <CheckCircle className="w-4 h-4" />
+            Active
+          </div>
+        );
+      case 'stopped':
+        return (
+          <>
+            <button
+              onClick={startBackgroundService}
+              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
+              title="Start background service"
+            >
+              Start
+            </button>
+            <div className="flex items-center gap-1 text-red-400 text-sm">
+              <XCircle className="w-4 h-4" />
+              Inactive
+            </div>
+          </>
+        );
+      case 'unknown':
+      default:
+        return (
+          <div className="flex items-center gap-1 text-yellow-400 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            Unknown
+          </div>
+        );
+    }
+  }, [localConfig.enabled, backgroundServiceStatus, startBackgroundService]);
 
   // ================================================================================================
   // RENDER HELPERS
@@ -274,6 +355,106 @@ export default function NotificationSettings({
             </motion.button>
           </div>
         </div>
+
+        {/* Background Service Status - Always visible */}
+        <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Monitor className="w-5 h-5 text-blue-400" />
+              <div>
+                <h4 className="text-white font-medium">Background Service</h4>
+                <p className="text-gray-400 text-sm">
+                  {localConfig.enabled 
+                    ? "Enables notifications when app is closed"
+                    : "Disabled - Enable notifications to activate background service"
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {backgroundServiceStatusDisplay}
+            </div>
+          </div>
+        </div>
+
+        {/* Windows Setup Guide */}
+        {!permissionStatus?.granted && localConfig.enabled && (
+          <div className="p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-blue-500/20 rounded-lg">
+                <Monitor className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xl font-semibold text-white mb-2">🔔 Enable Windows Notifications</h4>
+                <p className="text-blue-100/80 text-sm mb-4">
+                  HabitQuest needs permission to send desktop notifications. Follow these steps to enable them:
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h5 className="text-blue-300 font-medium mb-2 flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">1</span>
+                      Windows Settings
+                    </h5>
+                    <p className="text-blue-100/70 text-sm">
+                      • Press <kbd className="bg-gray-700 px-2 py-1 rounded text-xs">Win + I</kbd> to open Windows Settings<br/>
+                      • Click on <strong>"System"</strong> → <strong>"Notifications"</strong>
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h5 className="text-blue-300 font-medium mb-2 flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">2</span>
+                      Enable for HabitQuest
+                    </h5>
+                    <p className="text-blue-100/70 text-sm">
+                      • Scroll down to find <strong>"HabitQuest"</strong> in the app list<br/>
+                      • Turn ON notifications for HabitQuest<br/>
+                      • Make sure "Show notification banners" is enabled
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h5 className="text-blue-300 font-medium mb-2 flex items-center gap-2">
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+                      Focus Assist Settings
+                    </h5>
+                    <p className="text-blue-100/70 text-sm">
+                      • In Windows Settings, go to <strong>"System"</strong> → <strong>"Focus assist"</strong><br/>
+                      • Set to <strong>"Off"</strong> or <strong>"Priority only"</strong><br/>
+                      • Add HabitQuest to priority list if using "Priority only"
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={checkPermissions}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Check Again
+                  </button>
+                  <button
+                    onClick={testNotification}
+                    disabled={isTestingNotification}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <Play className="w-4 h-4" />
+                    {isTestingNotification ? 'Testing...' : 'Test Now'}
+                  </button>
+                </div>
+                
+                <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-yellow-200 text-xs">
+                    <strong>💡 Tip:</strong> After enabling permissions, notifications will work even when HabitQuest is closed. 
+                    The background service automatically starts when you enable notifications.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {renderToggle(
           'streakReminders',

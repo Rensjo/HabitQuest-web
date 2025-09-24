@@ -72,7 +72,17 @@
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
-      "timestampUrl": ""
+      "timestampUrl": "",
+      "wix": {
+        "language": "en-US"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "allowDowngrades": false,
+      "nsis": {
+        "displayLanguageSelector": false
+      }
     }
   }
 }

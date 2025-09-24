@@ -32,7 +32,9 @@ pub fn run() {
       start_background_notifications,
       update_notification_config,
       record_app_activity,
-      record_habit_completion_backend
+      record_habit_completion_backend,
+      is_background_service_running,
+      get_background_service_status
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
@@ -90,4 +92,18 @@ fn tauri_send_notification(title: String, body: String, icon: Option<String>) ->
   log::info!("Notification: {}: {} (icon: {:?})", title, body, icon);
   
   Ok(())
+}
+
+#[tauri::command]
+fn is_background_service_running() -> bool {
+  // For now, we'll assume the service is running if the app is running
+  // TODO: Add proper background service tracking
+  true
+}
+
+#[tauri::command]
+fn get_background_service_status() -> String {
+  // Return status of background notification service
+  // TODO: Add proper status checking
+  "running".to_string()
 }

@@ -5,6 +5,8 @@ import { useSoundEffectsOnly } from '../../hooks/useSoundEffects';
 import { useTheme } from '../../hooks/useTheme';
 import { useAppStore } from '../../store/appStore';
 import { calculateStorageHealth, formatBytes, getStorageHealthColor, getStorageHealthBgColor, cleanupCacheData, type StorageHealth } from '../../utils/storageHealth';
+import NotificationSettings from '../notifications/NotificationSettings';
+import { useHabitReminders } from '../../hooks/useHabitReminders';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -33,7 +35,22 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const { playButtonClick: playClick } = useSoundEffectsOnly();
   const { theme, setTheme, gradientColors, setGradientColors } = useTheme();
-  const { exportData, importData, resetData } = useAppStore();
+  const { exportData, importData, resetData, settings, updateSettings } = useAppStore();
+  const { updateConfig } = useHabitReminders();
+  
+  // Notification configuration state
+  const [notificationConfig, setNotificationConfig] = useState({
+    enabled: settings.notifications || false,
+    streakReminders: true,
+    randomReminders: true,
+    reminderTimeRange: { start: 9, end: 21 },
+    maxRemindersPerDay: 2,
+    streakWarningThreshold: 3,
+    soundEnabled: settings.soundEffects || false,
+    intelligentTiming: true,
+    adaptiveFrequency: true,
+    streakProtectionHours: [12, 18, 20]
+  });
   
   // Storage health state
   const [storageHealth, setStorageHealth] = useState<StorageHealth | null>(null);
@@ -43,6 +60,31 @@ export function SettingsModal({
     playClick();
     onClose();
   };
+
+  const handleNotificationConfigChange = (config: any) => {
+    const newConfig = { ...notificationConfig, ...config };
+    setNotificationConfig(newConfig);
+    
+    // Update app store settings
+    if (config.enabled !== undefined) {
+      updateSettings({ notifications: config.enabled });
+    }
+    if (config.soundEnabled !== undefined) {
+      updateSettings({ soundEffects: config.soundEnabled });
+    }
+    
+    // Update habit reminders
+    updateConfig(config);
+  };
+
+  // Sync notification config with app store settings changes
+  useEffect(() => {
+    setNotificationConfig(prev => ({
+      ...prev,
+      enabled: settings.notifications || false,
+      soundEnabled: settings.soundEffects || false,
+    }));
+  }, [settings.notifications, settings.soundEffects]);
 
   const handleAudioToggle = () => {
     playClick();
@@ -545,71 +587,10 @@ export function SettingsModal({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
-                    <featureIcons.bell className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                    Notifications
-                  </h3>
-                  <div className="space-y-4">
-                    {/* Daily Reminders */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-neutral-50/50 to-neutral-100/50 dark:from-neutral-800/50 dark:to-neutral-700/50 border border-neutral-200/30 dark:border-neutral-600/30">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
-                          <featureIcons.clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Daily Reminders</div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400">Get reminded to complete your habits</div>
-                        </div>
-                      </div>
-                      <motion.button
-                        className="
-                          relative w-12 h-6 rounded-full
-                          bg-gradient-to-r from-amber-500 to-orange-500
-                          shadow-lg shadow-amber-500/30
-                          transition-all duration-200
-                        "
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <motion.div
-                          className="absolute top-0.5 right-0.5 w-5 h-5 bg-white rounded-full shadow-md"
-                          initial={{ x: 0 }}
-                          animate={{ x: 0 }}
-                          transition={{ duration: 0.2 }}
-                        />
-                      </motion.button>
-                    </div>
-
-                    {/* Streak Notifications */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-neutral-50/50 to-neutral-100/50 dark:from-neutral-800/50 dark:to-neutral-700/50 border border-neutral-200/30 dark:border-neutral-600/30">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-orange-500/10 dark:bg-orange-500/20">
-                          <featureIcons.flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm">Streak Notifications</div>
-                          <div className="text-xs text-neutral-600 dark:text-neutral-400">Celebrate your streak milestones</div>
-                        </div>
-                      </div>
-                      <motion.button
-                        className="
-                          relative w-12 h-6 rounded-full
-                          bg-gradient-to-r from-orange-500 to-red-500
-                          shadow-lg shadow-orange-500/30
-                          transition-all duration-200
-                        "
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <motion.div
-                          className="absolute top-0.5 right-0.5 w-5 h-5 bg-white rounded-full shadow-md"
-                          initial={{ x: 0 }}
-                          animate={{ x: 0 }}
-                          transition={{ duration: 0.2 }}
-                        />
-                      </motion.button>
-                    </div>
-                  </div>
+                  <NotificationSettings 
+                    config={notificationConfig}
+                    onConfigChange={handleNotificationConfigChange}
+                  />
                 </motion.div>
 
                 {/* Data Management */}
