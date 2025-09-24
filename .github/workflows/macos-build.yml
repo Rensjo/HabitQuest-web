@@ -22,15 +22,37 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
 
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+          toolchain: stable
 
-      - name: Install macOS dependencies
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Debug environment
         run: |
-          # Install create-dmg for DMG creation
-          npm install -g create-dmg || true
+          echo "Node version: $(node --version)"
+          echo "npm version: $(npm --version)" 
+          echo "Rust version: $(rustc --version)"
+          echo "Cargo version: $(cargo --version)"
+          echo "Tauri CLI version: $(npm list @tauri-apps/cli)"
+          echo "Working directory: $(pwd)"
+          echo "Target: ${{ matrix.target }}"
+
+      - name: Install system dependencies
+        run: |
+          # Install system dependencies for macOS builds
+          brew install cmake
+          
+      - name: Install Rust dependencies
+        run: |
+          # Ensure we have the right Rust targets
+          rustup target add ${{ matrix.target }}
 
       - name: Install frontend dependencies
         run: |
@@ -40,12 +62,33 @@ jobs:
         run: |
           npm run build
 
-      - name: Build Tauri DMG (ad-hoc signing)
-        uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri app
+        run: |
+          echo "Starting Tauri build for target: ${{ matrix.target }}"
+          npm run tauri build -- --target ${{ matrix.target }} --verbose
         env:
           APPLE_SIGNING_IDENTITY: "-"
-        with:
-          args: --target ${{ matrix.target }}
+          RUST_BACKTRACE: 1
+
+      - name: Check build outputs (on failure)
+        if: failure()
+        run: |
+          echo "=== Build failed, checking logs and outputs ==="
+          ls -la src-tauri/target/ || echo "No target directory found"
+          ls -la src-tauri/target/${{ matrix.target }}/ || echo "No target-specific directory found"  
+          echo "=== Cargo build log (if available) ==="
+          find . -name "*.log" -exec cat {} \; || echo "No log files found"
+          
+      - name: List build outputs
+        run: |
+          echo "=== Build output structure ==="
+          find src-tauri/target -name "*.dmg" -o -name "*.app" -o -name "*.tar.gz" | head -20
+          echo "=== Bundle directory contents ==="
+          ls -la src-tauri/target/${{ matrix.target }}/release/bundle/ || echo "Bundle directory not found"
+          echo "=== All target directories ==="
+          ls -la src-tauri/target/ || echo "Target directory not found"
+          echo "=== Release directory contents ==="
+          ls -la src-tauri/target/${{ matrix.target }}/release/ || echo "Release directory not found"
 
       - name: List build outputs
         run: |

@@ -146,7 +146,7 @@ impl BackgroundNotificationService {
     fn send_background_notification(app_handle: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         use tauri_plugin_notification::NotificationExt;
 
-        let notification = app_handle
+        let _notification = app_handle
             .notification()
             .builder()
             .title("🎯 HabitQuest Reminder")
@@ -190,8 +190,9 @@ impl BackgroundNotificationService {
 
     fn save_config_to_file(&self, config: &NotificationConfig) -> Result<(), Box<dyn std::error::Error>> {
         use std::fs;
-        let config_dir = self.app_handle.path_resolver().app_config_dir()
-            .ok_or("Could not resolve app config directory")?;
+        
+        let config_dir = self.app_handle.path().app_config_dir()
+            .map_err(|e| format!("Could not resolve app config directory: {}", e))?;
         
         fs::create_dir_all(&config_dir)?;
         let config_path = config_dir.join("notification_config.json");
@@ -202,8 +203,9 @@ impl BackgroundNotificationService {
 
     fn save_activity_to_file(&self, activity: &ActivityData) -> Result<(), Box<dyn std::error::Error>> {
         use std::fs;
-        let config_dir = self.app_handle.path_resolver().app_config_dir()
-            .ok_or("Could not resolve app config directory")?;
+        
+        let config_dir = self.app_handle.path().app_config_dir()
+            .map_err(|e| format!("Could not resolve app config directory: {}", e))?;
         
         fs::create_dir_all(&config_dir)?;
         let activity_path = config_dir.join("activity_data.json");
@@ -215,8 +217,8 @@ impl BackgroundNotificationService {
     pub fn load_from_files(&self) -> Result<(), Box<dyn std::error::Error>> {
         use std::fs;
         
-        let config_dir = self.app_handle.path_resolver().app_config_dir()
-            .ok_or("Could not resolve app config directory")?;
+        let config_dir = self.app_handle.path().app_config_dir()
+            .map_err(|e| format!("Could not resolve app config directory: {}", e))?;
 
         // Load config
         let config_path = config_dir.join("notification_config.json");
