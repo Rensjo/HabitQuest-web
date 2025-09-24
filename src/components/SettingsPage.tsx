@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useTheme } from '../hooks/useTheme.tsx';
+import { useTheme } from '../hooks/useTheme';
+import { useHabitReminders } from '../hooks/useHabitReminders';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { Icon } from './ui/Icon';
 import { Modal } from './ui/Modal';
+import NotificationSettings from './notifications/NotificationSettings';
 
 interface SettingsPageProps {
   isOpen: boolean;
@@ -14,8 +16,21 @@ interface SettingsPageProps {
 export function SettingsPage({ isOpen, onClose }: SettingsPageProps) {
   const { settings, updateSettings, exportData, importData, resetData } = useAppStore();
   const { theme, gradientColors, setGradientColors } = useTheme();
+  const { updateConfig } = useHabitReminders();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [customColors, setCustomColors] = useState(gradientColors.join(', '));
+  const [notificationConfig, setNotificationConfig] = useState({
+    enabled: settings.notifications || false,
+    streakReminders: true,
+    randomReminders: true,
+    reminderTimeRange: { start: 9, end: 21 },
+    maxRemindersPerDay: 2,
+    streakWarningThreshold: 3,
+    soundEnabled: settings.soundEffects || false,
+    intelligentTiming: true,
+    adaptiveFrequency: true,
+    streakProtectionHours: [12, 18, 20]
+  });
 
   const handleExport = () => {
     const data = exportData();
@@ -57,6 +72,29 @@ export function SettingsPage({ isOpen, onClose }: SettingsPageProps) {
       setGradientColors(colors);
     }
   };
+
+  const handleNotificationConfigChange = (config: any) => {
+    const newConfig = { ...notificationConfig, ...config };
+    setNotificationConfig(newConfig);
+    updateConfig(config);
+    
+    // Sync with app store settings for backward compatibility
+    if (config.enabled !== undefined) {
+      updateSettings({ notifications: config.enabled });
+    }
+    if (config.soundEnabled !== undefined) {
+      updateSettings({ soundEffects: config.soundEnabled });
+    }
+  };
+
+  // Sync notification config with app store settings changes
+  useEffect(() => {
+    setNotificationConfig(prev => ({
+      ...prev,
+      enabled: settings.notifications || false,
+      soundEnabled: settings.soundEffects || false
+    }));
+  }, [settings.notifications, settings.soundEffects]);
 
   const handleReset = () => {
     resetData();
@@ -169,21 +207,7 @@ export function SettingsPage({ isOpen, onClose }: SettingsPageProps) {
                 </Button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="font-medium">Notifications</label>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Receive reminders and achievement notifications
-                  </p>
-                </div>
-                <Button
-                  variant={settings.notifications ? 'success' : 'outline'}
-                  size="sm"
-                  onClick={() => updateSettings({ notifications: !settings.notifications })}
-                >
-                  {settings.notifications ? 'Enabled' : 'Disabled'}
-                </Button>
-              </div>
+
 
               <div className="flex items-center justify-between">
                 <div>
@@ -210,6 +234,14 @@ export function SettingsPage({ isOpen, onClose }: SettingsPageProps) {
                 </div>
               </div>
             </div>
+          </Card>
+
+          {/* Notification Settings */}
+          <Card variant="outlined" padding="lg">
+            <NotificationSettings 
+              config={notificationConfig}
+              onConfigChange={handleNotificationConfigChange}
+            />
           </Card>
 
           {/* Data Management */}

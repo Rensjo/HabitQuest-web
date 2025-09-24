@@ -18,6 +18,9 @@ import { DynamicContainer } from "./components/layout";
 import { AppBackground } from "./components/layout/AppBackground";
 import { ModalSystem } from "./components/modals/ModalSystem";
 
+// Import notification system
+import { useHabitReminders } from "./hooks/useHabitReminders";
+
 // Phase 1: Core UI Components
 import { AppHeader } from "./components/header";
 import { CalendarSection } from "./components/calendar";
@@ -131,6 +134,36 @@ function HabitGoalTrackerV3() {
     setShowDeleteReward,
     setSelectedReward
   } = useAppState();
+
+  // -------------------------------------------------------------------
+  // Notification System Integration
+  // -------------------------------------------------------------------
+  
+  // Initialize habit reminder system
+  const habitReminders = useHabitReminders({
+    habits: habits,
+    onNotificationClick: (habitId) => {
+      if (habitId) {
+        // Find and focus on the specific habit
+        const habitElement = document.querySelector(`[data-habit-id="${habitId}"]`);
+        if (habitElement) {
+          habitElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  });
+
+  // Enhanced habit completion handler that includes notification system
+  const handleHabitCompleteWithNotifications = useCallback((habitId: string, date: Date) => {
+    // Call original handler
+    handleHabitComplete(habitId, date);
+    
+    // Record completion in notification system
+    const habit = habits.find(h => h.id === habitId);
+    if (habit) {
+      habitReminders.recordHabitCompletion(habitId, habit.title);
+    }
+  }, [handleHabitComplete, habits, habitReminders]);
 
   // -------------------------------------------------------------------
   // Performance Optimizations
@@ -366,7 +399,7 @@ function HabitGoalTrackerV3() {
           selectedDate={selectedDate}
           activeFreq={activeFreq}
           categories={categories}
-          onHabitComplete={handleHabitComplete}
+          onHabitComplete={handleHabitCompleteWithNotifications}
           onHabitDelete={deleteHabit}
           onHabitEdit={editHabit}
           getPeriodKey={getPeriodKeyWrapper}
@@ -557,7 +590,7 @@ function HabitGoalTrackerV3() {
         onAddReward={() => setShowAddReward(true)}
         selectedDate={selectedDate}
         dayInsights={dayInsights}
-        onHabitComplete={handleHabitComplete}
+        onHabitComplete={handleHabitCompleteWithNotifications}
         getPeriodKey={getPeriodKeyWrapper}
         habits={habits}
         categories={categories}
