@@ -65,33 +65,30 @@ fn tauri_request_notification_permission() -> bool {
 }
 
 #[tauri::command]
-fn tauri_send_notification(title: String, body: String, icon: Option<String>) -> Result<(), String> {
-  // Create a simple notification
-  // Note: In a production app, you'd want to use a proper notification library
-  // like `notify-rust` for cross-platform desktop notifications
+fn tauri_send_notification(app_handle: tauri::AppHandle, title: String, body: String, icon: Option<String>) -> Result<(), String> {
+  use tauri_plugin_notification::NotificationExt;
   
-  #[cfg(target_os = "windows")]
-  {
-    // Windows implementation would use Windows Toast API
-    log::info!("Sending Windows notification: {} - {}", title, body);
+  log::info!("Attempting to send notification: {} - {}", title, body);
+  
+  let mut builder = app_handle.notification().builder()
+    .title(&title)
+    .body(&body);
+    
+  if let Some(icon_name) = icon {
+    builder = builder.icon(&icon_name);
   }
   
-  #[cfg(target_os = "macos")]
-  {
-    // macOS implementation would use NSUserNotification
-    log::info!("Sending macOS notification: {} - {}", title, body);
+  match builder.show() {
+    Ok(_) => {
+      log::info!("Notification sent successfully");
+      Ok(())
+    },
+    Err(e) => {
+      let error_msg = format!("Failed to send notification: {}", e);
+      log::error!("{}", error_msg);
+      Err(error_msg)
+    }
   }
-  
-  #[cfg(target_os = "linux")]
-  {
-    // Linux implementation would use libnotify
-    log::info!("Sending Linux notification: {} - {}", title, body);
-  }
-  
-  // For now, just log the notification (placeholder)
-  log::info!("Notification: {}: {} (icon: {:?})", title, body, icon);
-  
-  Ok(())
 }
 
 #[tauri::command]

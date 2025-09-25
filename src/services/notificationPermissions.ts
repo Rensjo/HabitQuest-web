@@ -151,7 +151,7 @@ export class NotificationPermissionManager {
         return true;
       }
 
-      // Try Tauri notification
+      // Try Tauri notification via custom command
       if (typeof window !== 'undefined' && (window as any).__TAURI__) {
         const { invoke } = await import('@tauri-apps/api/core');
         await invoke('tauri_send_notification', {
