@@ -30,11 +30,7 @@
       "csp": null
     }
   },
-  "plugins": {
-    "notification": {
-      "default": ["all"]
-    }
-  },
+  "plugins": {},
   "bundle": {
     "active": true,
     "targets": "all",
