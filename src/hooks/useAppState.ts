@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSoundEffects } from './useSoundEffects';
 import { useHabitManagement } from './business';
+import { initializeTrayEventHandler } from '../services/trayEventHandler';
 import type { Frequency, Habit, Reward } from '../types';
 import { getPeriodKey, startOfMonth, endOfMonth } from '../utils';
 
@@ -76,8 +77,30 @@ export function useAppState() {
     playCoins,
     playBackgroundMusic,
     stopBackgroundMusic,
-    initializeAudio
+    initializeAudio,
+    soundService
   } = useSoundEffects(soundConfig);
+
+  // Initialize tray event handler with sound service
+  useEffect(() => {
+    if (soundService) {
+      const trayHandler = initializeTrayEventHandler(soundService);
+      
+      // Configure tray behavior
+      trayHandler.updateConfig({
+        pauseAudioOnHide: true,
+        pauseTimersOnHide: true,
+        showTrayNotification: true
+      });
+
+      console.log('✅ Tray event handler initialized with sound service');
+      
+      // Cleanup on unmount
+      return () => {
+        trayHandler.destroy();
+      };
+    }
+  }, [soundService]);
 
   // Wrapper function to fix type compatibility
   const getPeriodKeyWrapper = (frequency: string, date: Date) => getPeriodKey(frequency as Frequency, date);
