@@ -18,6 +18,17 @@ path = "src/main.rs"
 name = "habitquest_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+# Performance optimizations
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 1
+
 [build-dependencies]
 tauri-build = { version = "2.4.1", features = [] }
 

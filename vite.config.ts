@@ -5,19 +5,24 @@ export default defineConfig({
   plugins: [react()],
   base: './',         // <-- IMPORTANT for Electron/local file loads
   
-  // Tauri-specific optimizations
+  // Enhanced Tauri-specific optimizations
   build: {
     target: 'esnext',
     minify: 'terser',
+    chunkSizeWarningLimit: 250,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor libraries
+          // Split vendor libraries more granularly
           'react-vendor': ['react', 'react-dom', 'react-is'],
           'framer-motion': ['framer-motion'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-progress', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', 
+                       '@radix-ui/react-progress', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
           'charts': ['recharts'],
-          'utils': ['clsx', 'tailwind-merge', 'zustand']
+          'utils': ['clsx', 'tailwind-merge', 'zustand'],
+          'lodash': ['lodash-es'],
+          'icons': ['lucide-react'],
+          'animation-utils': ['@use-gesture/react', 'react-spring']
         }
       }
     },
@@ -25,7 +30,11 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+        passes: 2
+      },
+      mangle: {
+        safari10: true
       }
     }
   },
