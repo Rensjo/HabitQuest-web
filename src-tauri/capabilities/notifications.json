@@ -1,0 +1,16 @@
+{
+  "identifier": "notifications",
+  "description": "Allow HabitQuest to show system notifications and run background services",
+  "windows": ["main"],
+  "permissions": [
+    "notification:default",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission", 
+    "notification:allow-show",
+    "core:default",
+    "core:app:default",
+    "core:window:default",
+    "core:event:default",
+    "core:tray:default"
+  ]
+}

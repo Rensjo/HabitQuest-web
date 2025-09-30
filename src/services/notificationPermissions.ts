@@ -87,15 +87,31 @@ export class NotificationPermissionManager {
   private static async handleTauriNotifications(): Promise<{ granted: boolean }> {
     try {
       if (typeof window !== 'undefined' && (window as any).__TAURI__) {
-        const { invoke } = await import('@tauri-apps/api/core');
-        
-        const isSupported = await invoke('tauri_notification_supported').catch(() => false);
-        if (!isSupported) {
-          return { granted: false };
+        try {
+          // Try v2 plugin first
+          const { isPermissionGranted, requestPermission } = await import('@tauri-apps/plugin-notification');
+          
+          let granted = await isPermissionGranted();
+          if (!granted) {
+            const permission = await requestPermission();
+            granted = permission === 'granted';
+          }
+          
+          return { granted };
+        } catch (pluginError) {
+          console.warn('Tauri v2 plugin not available, trying custom commands:', pluginError);
+          
+          // Fallback to custom commands
+          const { invoke } = await import('@tauri-apps/api/core');
+          
+          const isSupported = await invoke('tauri_notification_supported').catch(() => false);
+          if (!isSupported) {
+            return { granted: false };
+          }
+          
+          const hasPermission = await invoke('tauri_request_notification_permission').catch(() => false);
+          return { granted: Boolean(hasPermission) };
         }
-        
-        const hasPermission = await invoke('tauri_request_notification_permission').catch(() => false);
-        return { granted: Boolean(hasPermission) };
       }
     } catch (error) {
       console.error('Error with Tauri notifications:', error);
@@ -141,23 +157,47 @@ export class NotificationPermissionManager {
 
   public static async testNotification(): Promise<boolean> {
     try {
-      // Try web notification first
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🎯 HabitQuest Test', {
-          body: 'Notifications are working correctly!',
-          icon: '/favicon.png',
-          tag: 'test'
-        });
-        return true;
+      // Try Tauri v2 notification plugin first
+      if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+        try {
+          const { isPermissionGranted, requestPermission, sendNotification } = await import('@tauri-apps/plugin-notification');
+          
+          // Check permission
+          let permissionGranted = await isPermissionGranted();
+          if (!permissionGranted) {
+            const permission = await requestPermission();
+            permissionGranted = permission === 'granted';
+          }
+          
+          if (permissionGranted) {
+            // Send test notification using v2 plugin
+            await sendNotification({
+              title: '🎯 HabitQuest Test',
+              body: 'Notifications are working correctly! You should now see HabitQuest in Windows notification settings.',
+              icon: 'habitquest-icon'
+            });
+            return true;
+          }
+        } catch (pluginError) {
+          console.warn('Tauri v2 plugin failed, trying custom command:', pluginError);
+          
+          // Fallback to custom command
+          const { invoke } = await import('@tauri-apps/api/core');
+          await invoke('tauri_send_notification', {
+            title: '🎯 HabitQuest Test',
+            body: 'Notifications are working correctly!',
+            icon: 'habitquest-icon'
+          });
+          return true;
+        }
       }
 
-      // Try Tauri notification via custom command
-      if (typeof window !== 'undefined' && (window as any).__TAURI__) {
-        const { invoke } = await import('@tauri-apps/api/core');
-        await invoke('tauri_send_notification', {
-          title: '🎯 HabitQuest Test',
-          body: 'Notifications are working correctly!',
-          icon: 'habitquest-icon'
+      // Try web notification as final fallback
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('🎯 HabitQuest Test', {
+          body: 'Web notifications are working!',
+          icon: '/favicon.png',
+          tag: 'test'
         });
         return true;
       }

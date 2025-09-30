@@ -136,6 +136,31 @@ export default function NotificationSettings({
     setTimeout(() => setIsTestingNotification(false), 2000);
   };
 
+  const initializeNotificationSystem = useCallback(async () => {
+    setIsTestingNotification(true);
+    
+    try {
+      // Use the new enhanced initialization command
+      if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const success = await invoke('init_notifications_and_send_test') as boolean;
+        
+        if (success) {
+          console.log('Notification system initialized successfully');
+          // Re-check permissions after initialization
+          await checkPermissions();
+        }
+      } else {
+        // Fallback to regular test
+        await testNotification();
+      }
+    } catch (error) {
+      console.error('Failed to initialize notification system:', error);
+    }
+    
+    setTimeout(() => setIsTestingNotification(false), 2000);
+  }, [checkPermissions]);
+
   const handleEnableNotifications = useCallback(async () => {
     if (!localConfig.enabled) {
       // Check permissions before enabling
@@ -294,16 +319,29 @@ export default function NotificationSettings({
           </p>
         </div>
         
-        <motion.button
-          onClick={testNotification}
-          disabled={isTestingNotification}
-          className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
-                     text-white rounded-lg font-medium transition-colors duration-200
-                     ${isTestingNotification ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-          whileTap={{ scale: 0.95 }}
-        >
-          {isTestingNotification ? 'Sending...' : 'Test Notification'}
-        </motion.button>
+        <div className="flex gap-3">
+          <motion.button
+            onClick={initializeNotificationSystem}
+            disabled={isTestingNotification}
+            className={`px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 
+                       text-white rounded-lg font-medium transition-colors duration-200
+                       ${isTestingNotification ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isTestingNotification ? 'Initializing...' : 'Initialize & Test'}
+          </motion.button>
+          
+          <motion.button
+            onClick={testNotification}
+            disabled={isTestingNotification}
+            className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
+                       text-white rounded-lg font-medium transition-colors duration-200
+                       ${isTestingNotification ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isTestingNotification ? 'Sending...' : 'Test Notification'}
+          </motion.button>
+        </div>
       </div>
 
       {/* Main Settings */}
@@ -436,12 +474,12 @@ export default function NotificationSettings({
                     Check Again
                   </button>
                   <button
-                    onClick={testNotification}
+                    onClick={initializeNotificationSystem}
                     disabled={isTestingNotification}
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors"
                   >
                     <Play className="w-4 h-4" />
-                    {isTestingNotification ? 'Testing...' : 'Test Now'}
+                    {isTestingNotification ? 'Initializing...' : 'Initialize & Test'}
                   </button>
                 </div>
                 

@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "HabitQuest",
-  "version": "4.1.2",
+  "version": "4.2.0",
   "identifier": "com.renkaistudios.habitquest",
   "build": {
     "frontendDist": "../dist",
@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "HabitQuest",
         "width": 1200,
         "height": 800,
@@ -23,7 +24,8 @@
         "decorations": true,
         "alwaysOnTop": false,
         "skipTaskbar": false,
-        "theme": "Light"
+        "theme": "Light",
+        "visible": true
       }
     ],
     "security": {

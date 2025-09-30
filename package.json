@@ -1,7 +1,7 @@
 {
   "name": "habitquest-web",
   "private": true,
-  "version": "4.1.2",
+  "version": "4.2.0",
   "description": "Gamified habit tracking application",
   "author": "RenKaiStudios",
   "license": "MIT",
@@ -10,7 +10,13 @@
     "url": "https://github.com/Rensjo/HabitQuest-web.git"
   },
   "homepage": "https://github.com/Rensjo/HabitQuest-web",
-  "keywords": ["habit-tracker", "gamification", "productivity", "tauri", "react"],
+  "keywords": [
+    "habit-tracker",
+    "gamification",
+    "productivity",
+    "tauri",
+    "react"
+  ],
   "type": "module",
   "engines": {
     "node": ">=18.0.0",
@@ -40,6 +46,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/cli": "^2.8.4",
+    "@tauri-apps/plugin-autostart": "^2.5.0",
+    "@tauri-apps/plugin-notification": "^2.3.1",
     "@types/lodash-es": "^4.17.12",
     "@use-gesture/react": "^10.3.1",
     "clsx": "^2.1.1",
