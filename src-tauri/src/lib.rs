@@ -5,6 +5,13 @@ use tauri::{Manager, Emitter};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent};
 use tauri_plugin_notification::NotificationExt;
 use chrono::Timelike;
+use std::env;
+
+// Check if app was launched on system startup
+fn is_startup_launch() -> bool {
+    // Only check for explicit autostart arguments
+    env::args().any(|arg| arg == "--autostart" || arg == "--startup")
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,6 +28,35 @@ pub fn run() {
       }
 
       let handle = app.handle().clone();
+      let is_startup = is_startup_launch();
+
+      // Handle startup behavior
+      if is_startup {
+        log::info!("App launched on startup - showing notification only");
+        
+        // Hide the main window immediately if launched on startup
+        if let Some(window) = handle.get_webview_window("main") {
+          let _ = window.hide();
+        }
+
+        // Send startup notification after brief delay
+        let notification_handle = handle.clone();
+        tauri::async_runtime::spawn(async move {
+          tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+          let _ = notification_handle.notification().builder()
+            .title("🎯 HabitQuest is Ready")
+            .body("Your habit tracker is running in the background. Click to open!")
+            .show();
+          log::info!("Startup notification sent");
+        });
+      } else {
+        log::info!("Normal app launch - showing window");
+        // Normal launch - show window immediately
+        if let Some(window) = handle.get_webview_window("main") {
+          let _ = window.show();
+          let _ = window.set_focus();
+        }
+      }
 
       // Create system tray icon for background operation
       let handle_for_tray = handle.clone();
@@ -58,19 +94,19 @@ pub fn run() {
 
       Ok(())
     })
-    // Enhanced window event handling for proper tray behavior
+    // Enhanced window event handling for proper app termination
     .on_window_event(|window, event| {
       match event {
-        tauri::WindowEvent::CloseRequested { api, .. } => {
-          api.prevent_close();
+        tauri::WindowEvent::CloseRequested { .. } => {
+          // Allow the app to close normally and terminate completely
+          log::info!("Window close requested - terminating application");
           
-          // Notify frontend to pause all activities
-          let _ = window.emit("app-hiding-to-tray", ());
+          // Optional: Emit cleanup event to frontend before closing
+          let _ = window.emit("app-terminating", ());
           
-          // Hide the window to system tray
-          let _ = window.hide();
-          
-          log::info!("Window hidden to system tray, frontend notified to pause activities");
+          // Don't prevent close - let the app exit normally
+          // Exit the application completely
+          std::process::exit(0);
         },
         tauri::WindowEvent::Focused(focused) => {
           if *focused {
@@ -96,7 +132,9 @@ pub fn run() {
       is_background_service_running,
       get_background_service_status,
       show_main_window,
-      init_notifications_and_send_test
+      init_notifications_and_send_test,
+      minimize_to_tray,
+      exit_app_completely
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
@@ -248,4 +286,31 @@ fn get_background_service_status() -> String {
   // Return status of background notification service
   // TODO: Add proper status checking
   "running".to_string()
+}
+
+// New function to minimize to tray (optional behavior)
+#[tauri::command]
+fn minimize_to_tray(app_handle: tauri::AppHandle) -> Result<(), String> {
+  if let Some(window) = app_handle.get_webview_window("main") {
+    let _ = window.emit("app-hiding-to-tray", ());
+    let _ = window.hide();
+    log::info!("Window manually minimized to system tray");
+    Ok(())
+  } else {
+    Err("Window not found".to_string())
+  }
+}
+
+// New function to exit app completely
+#[tauri::command]
+fn exit_app_completely(app_handle: tauri::AppHandle) -> Result<(), String> {
+  log::info!("Application exit requested via command");
+  
+  // Emit cleanup event to frontend
+  if let Some(window) = app_handle.get_webview_window("main") {
+    let _ = window.emit("app-terminating", ());
+  }
+  
+  // Exit the application completely
+  std::process::exit(0);
 }

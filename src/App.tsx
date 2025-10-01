@@ -21,6 +21,9 @@ import { ModalSystem } from "./components/modals/ModalSystem";
 // Import notification system
 import { useHabitReminders } from "./hooks/useHabitReminders";
 
+// Import memory management
+import { useMemoryManagement } from "./hooks/useMemoryManagement";
+
 // Phase 1: Core UI Components
 import { AppHeader } from "./components/header";
 import { CalendarSection } from "./components/calendar";
@@ -134,6 +137,17 @@ function HabitGoalTrackerV3() {
     setShowDeleteReward,
     setSelectedReward
   } = useAppState();
+
+  // -------------------------------------------------------------------
+  // Memory Management
+  // -------------------------------------------------------------------
+  
+  // Initialize lightweight memory management
+  useMemoryManagement({
+    enableCleanup: true,
+    cleanupInterval: 5, // 5 minutes
+    enableTrayMinimize: false // App closes completely instead
+  });
 
   // -------------------------------------------------------------------
   // Notification System Integration
